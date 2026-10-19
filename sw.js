@@ -105,5 +105,10 @@ self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== CACHE).map(x => caches.delete(x)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
+  // strona: najpierw internet (od razu najnowsza wersja), bez internetu z pamięci
+  if (e.request.mode === 'navigate') {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match('./'))));
+    return;
+  }
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request)));
 });
