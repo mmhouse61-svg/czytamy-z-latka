@@ -88,6 +88,7 @@
     display: flex; align-items: center; justify-content: space-between; z-index: 5;
   }
   .postep { display: flex; gap: 1.4vh; }
+  .lewa-grupa { display: flex; gap: 2vh; }
   .postep span {
     width: 3.6vh; height: 3.6vh; border-radius: 50%;
     border: 0.5vh solid var(--kontur); background: transparent; transition: background .3s, transform .3s;
@@ -286,7 +287,12 @@
 <!-- GRA -->
 <section id="gra" class="ekran">
   <div class="pasek">
-    <div class="tato" id="tato"><img src="img/tato.svg" alt="Tato"></div>
+    <div class="lewa-grupa">
+      <button class="glosnik" id="do-domu" aria-label="Wróć na ekran główny">
+        <svg viewBox="0 0 10 10" style="width:50%;height:50%"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="tato" id="tato"><img src="img/tato.svg" alt="Tato"></div>
+    </div>
     <div class="postep" id="postep"></div>
     <button class="glosnik" id="powtorz" aria-label="Powtórz polecenie">
       <svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#F2C230"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg>
@@ -532,6 +538,7 @@ const el = {
   latkaKarta: document.getElementById('latka-karta'),
   dalej: document.getElementById('dalej'),
 };
+let sesjaGry = 0; // rośnie przy wyjściu z gry, stare sekwencje (karta, tunel) same się kończą
 let nr = 0, wstawione = 0, bledyTeraz = 0, zablokowane = false, powitanie = null;
 
 const LOKOMOTYWA = `
@@ -573,6 +580,7 @@ function polecenie() {
 }
 
 async function nowaRunda() {
+  const moja = sesjaGry;
   const s = slowa[nr];
   wstawione = 0; bledyTeraz = 0; zablokowane = false;
   narysujPostep();
@@ -609,10 +617,13 @@ async function nowaRunda() {
   if (el.latka.classList.contains('schowana')) { el.latka.classList.remove('schowana'); animuj(el.latka, 'wraca'); }
   obudzBezczynnosc();
   await czekaj(900);
-  await powitanie; // nie ucinaj „Cześć, Różo!”
+  if (moja !== sesjaGry) return;
+  await powitanie;
+  if (moja !== sesjaGry) return; // nie ucinaj „Cześć, Różo!”
   powitanie = null;
   przerwij();
   await polecenie();
+  if (moja !== sesjaGry) return;
 }
 
 // ---------- akcje Łatki ----------
@@ -739,6 +750,7 @@ async function sprobujWstawic(w) {
 }
 
 async function slowoGotowe() {
+  const moja = sesjaGry;
   zablokowane = true;
   const s = slowa[nr];
   el.pociag.querySelectorAll('.miejsce').forEach(m => m.classList.remove('nastepne'));
@@ -749,9 +761,12 @@ async function slowoGotowe() {
   for (let i = 0; i < s.syl.length; i++) {
     wagony[i].classList.remove('wstawiony'); wagony[i].offsetWidth; wagony[i].classList.add('wstawiony');
     await powiedz(s.syl[i], { tempo: 0.7 });
+    if (moja !== sesjaGry) return;
     await czekaj(150);
+    if (moja !== sesjaGry) return;
   }
   await powiedz(s.syl.join(''), { tempo: 0.8 });
+  if (moja !== sesjaGry) return;
 
   // pociąg wjeżdża do tunelu; co trzecie słowo Łatka jedzie z nim, inaczej macha na pożegnanie
   if (nr % 3 === 2) {
@@ -760,6 +775,7 @@ async function slowoGotowe() {
     wagony[0].appendChild(pasazer);
     el.latka.classList.add('schowana');
     await czekaj(500);
+    if (moja !== sesjaGry) return;
   } else {
     animuj(el.latka, 'macha');
   }
@@ -767,6 +783,7 @@ async function slowoGotowe() {
   el.pociag.style.transform = '';
   el.pociag.classList.add('odjazd');
   await czekaj(1900);
+  if (moja !== sesjaGry) return;
 
   // obrazek wyjeżdża z tunelu
   el.kartaObrazek.textContent = s.obrazek;
@@ -782,11 +799,14 @@ async function slowoGotowe() {
   for (let i = 0; i < spany.length; i++) {
     spany[i].classList.add('czytana');
     await powiedz(s.syl[i], { tempo: 0.7 });
+    if (moja !== sesjaGry) return;
     spany[i].classList.remove('czytana');
   }
   await powiedz(s.syl.join(''), { tempo: 0.8 });
+  if (moja !== sesjaGry) return;
   const p = pochwaly();
   await powiedz(p[Math.floor(Math.random() * p.length)], { tempo: 0.95 });
+  if (moja !== sesjaGry) return;
   el.dalej.classList.add('widoczny');
 }
 
@@ -815,6 +835,14 @@ document.querySelectorAll('[data-gracz]').forEach(b => b.addEventListener('click
   pokaz('poziomy');
 }));
 document.getElementById('do-startu').addEventListener('click', () => pokaz('start'));
+document.getElementById('do-domu').addEventListener('click', () => {
+  sesjaGry++; zablokowane = true;
+  clearTimeout(stoperBezczynnosci);
+  przerwij();
+  el.kartaTlo.classList.remove('widoczna');
+  odswiezStart();
+  pokaz('start');
+});
 document.querySelectorAll('[data-poziom]').forEach(b => b.addEventListener('click', () => {
   // iPad odblokowuje dźwięk dopiero po dotknięciu, więc pierwsze słowa padają tutaj
   const pula = POZIOMY[+b.dataset.poziom];
