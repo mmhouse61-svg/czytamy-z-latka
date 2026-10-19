@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odsłuch nagrań</title>
+<style>
+  :root { --tlo: #F2E8D9; --kontur: #4B3A2E; }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--tlo); color: var(--kontur);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  p { margin: 0 0 20px; }
+  h2 { font-size: 18px; margin: 24px 0 10px; }
+  .siatka { display: flex; flex-wrap: wrap; gap: 10px; }
+  button { font: inherit; font-weight: 800; font-size: 20px; color: var(--kontur);
+    background: #fff; border: 3px solid var(--kontur); border-radius: 14px; padding: 12px 16px; cursor: pointer; }
+  button.gra { background: #F2C230; }
+  button.zle { background: #E58FA8; text-decoration: line-through; }
+  #lista { margin-top: 24px; font-size: 16px; }
+</style>
+</head>
+<body>
+<h1>Odsłuch nagrań Taty</h1>
+<p>Stuknij, żeby posłuchać. Przytrzymaj (albo kliknij z Shiftem), żeby oznaczyć złe nagranie.</p>
+<div id="grupy"></div>
+<div id="lista"></div>
+<script>
+const GRUPY = {
+  'Sylaby': ['ma','ta','la','lo','dy','ko','ty','bu','ry','ba','no','ga','ku','ra','wo','da'].map(s => ['syl-' + s, s.toUpperCase()]),
+  'Słowa': ['mama','tata','lala','lody','koty','buty','ryba','noga','kura','woda'].map(s => ['slowo-' + s, s.toUpperCase()]),
+  'Nowe sylaby': ['za','so','wa','zu','pa','fo','ka','ży','fa','pu','ny','ro','na','mo','le','me','mu','zy','sa','ła','go','gi','li','ki','ja','gu'].map(s => ['syl-' + s, s.toUpperCase()]),
+  'Nowe słowa (poziom 1)': ['lama','koza','sowa','zupa','foka'].map(s => ['slowo-' + s, s.toUpperCase()]),
+  'Słowa poziom 2': ['banany','balony','korona','papuga','wagony','motyle','gitara','lizaki','jagody','kanapa','sałata','koguty','żyrafa','kometa','muzyka'].map(s => ['slowo-' + s, s.toUpperCase()]),
+  'Zdania': [['uloz-slowo','Ułóż słowo…'],['to-jest','To jest…'],['szukamy','Szukamy…'],['sprobuj','Spróbuj jeszcze raz'],
+    ['czesc','Cześć, Różo!'],['brawo-1','Brawo, Różo!'],['brawo-2','Super, Różo!'],['brawo-3','Świetnie!'],
+    ['brawo-4','Pięknie czytasz!'],['brawo-5','Hurra! Brawo!'],['koniec','Koniec sesji'],
+    ['czesc-marcelina','Cześć, Marcelino!'],['brawo-1-marcelina','Brawo, Marcelino!'],['brawo-2-marcelina','Super, Marcelino!'],['koniec-marcelina','Koniec sesji (Marcelina)']],
+};
+const audio = new Audio();
+const zle = new Set();
+const lista = document.getElementById('lista');
+const pokazListe = () => lista.textContent = zle.size ? 'Do poprawy: ' + [...zle].join(', ') : '';
+
+for (const [nazwa, pliki] of Object.entries(GRUPY)) {
+  const h = document.createElement('h2'); h.textContent = nazwa;
+  const s = document.createElement('div'); s.className = 'siatka';
+  for (const [plik, etykieta] of pliki) {
+    const b = document.createElement('button');
+    b.textContent = etykieta;
+    let timer, przytrzymany = false;
+    const oznacz = () => { b.classList.toggle('zle'); b.classList.contains('zle') ? zle.add(etykieta) : zle.delete(etykieta); pokazListe(); };
+    b.addEventListener('pointerdown', () => { przytrzymany = false; timer = setTimeout(() => { przytrzymany = true; oznacz(); }, 600); });
+    b.addEventListener('pointerup', () => clearTimeout(timer));
+    b.addEventListener('pointerleave', () => clearTimeout(timer));
+    b.addEventListener('click', e => {
+      if (przytrzymany) return;
+      if (e.shiftKey) return oznacz();
+      document.querySelectorAll('.gra').forEach(x => x.classList.remove('gra'));
+      b.classList.add('gra');
+      audio.src = `glos/${plik}.mp3`; audio.play();
+      audio.onended = () => b.classList.remove('gra');
+    });
+    s.appendChild(b);
+  }
+  document.getElementById('grupy').append(h, s);
+}
+</script>
+</body>
+</html>

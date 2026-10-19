@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Czytamy z Łatką">
+<meta name="theme-color" content="#F2E8D9">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/ikona-180.png">
+<title>Czytamy z Łatką</title>
+<style>
+  :root {
+    --tlo: #F2E8D9;
+    --kontur: #4B3A2E;
+    --trawa: #A9CF8E;
+    --tor: #8A6A50;
+    --pomaranczowy: #D9643A;
+    --niebieski: #3F6FB5;
+    --zolty: #F2C230;
+    --zielony: #6FB383;
+    --rozowy: #E58FA8;
+    --fiolet: #9C8BD0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+  body {
+    background: var(--tlo);
+    color: var(--kontur);
+    font-family: -apple-system, "SF Pro Rounded", "Helvetica Neue", Arial, sans-serif;
+    position: fixed; inset: 0;
+    touch-action: none;
+  }
+  img { -webkit-user-drag: none; }
+  button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; padding: 0; }
+
+  .ekran { position: absolute; inset: 0; display: none; }
+  .ekran.aktywny { display: block; }
+
+  /* ---------- przycisk filcowy ---------- */
+  .duzy-przycisk {
+    position: relative;
+    width: 24vh; height: 24vh; border-radius: 50%;
+    background: var(--zielony);
+    border: 0.7vh solid var(--kontur);
+    box-shadow: 0 1.2vh 0 rgba(75,58,46,.25);
+    display: grid; place-items: center;
+    transition: transform .12s;
+  }
+  .duzy-przycisk::before {
+    content: ""; position: absolute; inset: 1.4vh; border-radius: 50%;
+    border: 0.45vh dashed rgba(255,255,255,.75);
+  }
+  .duzy-przycisk:active { transform: scale(.93); }
+  .duzy-przycisk svg { width: 45%; height: 45%; margin-left: 8%; }
+
+  /* ---------- start ---------- */
+  #start { display: none; place-items: center; }
+  #start.aktywny { display: grid; }
+  .start-srodek { display: flex; align-items: center; gap: 6vw; }
+  .start-latka { height: 70vh; animation: kolysanie 3s ease-in-out infinite; transform-origin: 50% 100%; }
+  .start-prawa { display: flex; flex-direction: column; align-items: center; gap: 4vh; }
+  .tytul { font-size: 9vh; font-weight: 900; letter-spacing: .02em; text-align: center; line-height: 1.05; }
+  .naklejki-licznik { font-size: 3.6vh; font-weight: 800; min-height: 5vh; text-align: center; }
+  .gracze { display: flex; gap: 4vh; }
+  .gracz { display: flex; flex-direction: column; align-items: center; gap: 2vh; }
+  .gracz .duzy-przycisk { width: 36vh; height: 22vh; border-radius: 4vh; font-size: 5.6vh; font-weight: 900; color: #fff;
+    text-shadow: 0 0.5vh 0 rgba(75,58,46,.45); }
+  .gracz .duzy-przycisk::before { border-radius: 3vh; }
+
+  /* ---------- wybór poziomu ---------- */
+  #poziomy { display: none; place-items: center; }
+  #poziomy.aktywny { display: grid; }
+  .poziomy { display: flex; flex-direction: column; gap: 5vh; }
+  .poziom.duzy-przycisk { width: 50vh; height: 24vh; border-radius: 4vh; }
+  .poziom.duzy-przycisk::before { border-radius: 3vh; }
+  .mini-pociag { display: flex; gap: 1.6vh; position: relative; z-index: 1; }
+  .mini-pociag i { width: 10vh; height: 8.5vh; border-radius: 1.4vh; border: 0.6vh solid var(--kontur); }
+  .dom { position: absolute; top: 3vh; left: 3vw; z-index: 2; }
+
+  /* ---------- gra ---------- */
+  #gra { overflow: hidden; --k: 1; }
+  #gra.trzy { --k: .72; }
+  .pasek {
+    position: absolute; top: 2.5vh; left: 3vw; right: 3vw; height: 10vh;
+    display: flex; align-items: center; justify-content: space-between; z-index: 5;
+  }
+  .postep { display: flex; gap: 1.4vh; }
+  .postep span {
+    width: 3.6vh; height: 3.6vh; border-radius: 50%;
+    border: 0.5vh solid var(--kontur); background: transparent; transition: background .3s, transform .3s;
+  }
+  .postep span.zrobione { background: var(--zolty); }
+  .postep span.teraz { transform: scale(1.3); background: #fff; }
+  .glosnik {
+    width: 11vh; height: 11vh; border-radius: 50%;
+    background: #fff; border: 0.6vh solid var(--kontur);
+    display: grid; place-items: center;
+    box-shadow: 0 0.8vh 0 rgba(75,58,46,.2);
+  }
+  .glosnik svg { width: 55%; height: 55%; }
+  .glosnik:active { transform: scale(.92); }
+  .tato {
+    width: 11vh; height: 11vh; border-radius: 50%; overflow: hidden;
+    background: #fff; border: 0.6vh solid var(--kontur);
+    position: relative; transition: transform .15s;
+  }
+  .tato img { position: absolute; width: 190%; left: -45%; top: -6%; }
+  .tato.mowi { animation: mowi .35s ease-in-out infinite alternate; }
+
+  /* scena */
+  .scena { position: absolute; left: 0; right: 0; top: 14vh; height: 50vh; }
+  .ziemia { position: absolute; left: 0; right: 0; bottom: 0; height: 9vh; background: var(--trawa); border-top: 0.6vh solid var(--kontur); }
+  .tory { position: absolute; left: 0; right: 0; bottom: 7.5vh; height: 2.2vh;
+    background: repeating-linear-gradient(90deg, var(--tor) 0 1.4vh, transparent 1.4vh 4.2vh);
+    border-top: 0.6vh solid var(--kontur); z-index: 1; }
+
+  .tunel {
+    position: absolute; right: -6vh; bottom: 7.5vh; width: 38.8vh; height: 44vh; z-index: 1;
+  }
+  .tunel.przod { z-index: 4; pointer-events: none; }
+  .latka-scena {
+    position: absolute; left: 2vw; bottom: 7vh; height: 30vh; z-index: 3;
+    transform-origin: 50% 100%;
+    animation: kolysanie 3s ease-in-out infinite;
+  }
+  .latka-scena.skacze, .latka-karta.skacze { animation: skok .55s ease-out 3; }
+  .latka-scena.mysli { animation: przechyl 1s ease-in-out 1; }
+  .latka-scena.hop { animation: skok .55s ease-out 1; }
+  .latka-scena.macha { animation: macha .4s ease-in-out 4; }
+  .latka-scena.schowana { opacity: 0; }
+  .latka-scena.wraca { animation: wbiega .7s ease-out 1; }
+  /* Łatka jedzie na dachu ostatniego wagonu */
+  .pasazer { position: absolute; left: 50%; bottom: calc(100% - 1vh); height: calc(17vh * var(--k)); transform: translateX(-50%);
+    transform-origin: 50% 100%; animation: jazda .3s ease-in-out infinite alternate; pointer-events: none; }
+  .marchewka { position: absolute; font-size: 7vh; pointer-events: none; z-index: 30; animation: marchewka 1.3s ease-out forwards; }
+  .karta-prawa { position: relative; }
+
+  .pociag {
+    position: absolute; bottom: 8.5vh; right: 34vh; z-index: 2; /* stoi tuż przed tunelem */
+    display: flex; align-items: flex-end; gap: 1.2vh;
+    transition: transform 2.2s cubic-bezier(.55,0,.75,.4);
+  }
+  .pociag.odjazd { transform: translateX(110vw); }
+  .lokomotywa { width: 26vh; height: 26vh; flex: none; }
+  #gra.trzy .lokomotywa { width: 22vh; height: 22vh; }
+
+  .miejsce {
+    width: calc(23vh * var(--k)); height: calc(19vh * var(--k)); flex: none; position: relative;
+    margin-bottom: calc(2.9vh * var(--k) + 0.5vh); /* miejsce na koła: wagon stoi na torach jak lokomotywa */
+    border: 0.7vh dashed var(--kontur); border-radius: 2.2vh;
+    background: rgba(255,255,255,.45);
+    transition: background .2s, transform .2s;
+  }
+  .miejsce.nastepne { animation: puls 1.4s ease-in-out infinite; }
+  .miejsce.cel { background: rgba(255,255,255,.95); transform: scale(1.06); }
+  .miejsce .wagon { position: absolute; left: -0.7vh; top: -0.7vh; }
+
+  /* wagon z sylabą */
+  .wagon {
+    width: calc(23vh * var(--k)); height: calc(19vh * var(--k)); border-radius: 2.2vh; position: relative;
+    border: 0.7vh solid var(--kontur);
+    display: grid; place-items: center;
+    font-size: calc(10vh * var(--k)); font-weight: 900; letter-spacing: .03em; color: #fff;
+    text-shadow: 0 0.5vh 0 rgba(75,58,46,.45);
+    touch-action: none;
+    box-shadow: 0 1vh 0 rgba(75,58,46,.25);
+  }
+  .wagon::before {
+    content: ""; position: absolute; inset: 1.2vh; border-radius: 1.4vh;
+    border: 0.45vh dashed rgba(255,255,255,.7); pointer-events: none;
+  }
+  .wagon .kolo {
+    position: absolute; bottom: calc(-3.6vh * var(--k)); width: calc(6.4vh * var(--k)); height: calc(6.4vh * var(--k)); border-radius: 50%;
+    background: #5B4A3E; border: 0.6vh solid var(--kontur);
+  }
+  .wagon .kolo::after { content: ""; position: absolute; inset: calc(1.7vh * var(--k) - .2vh); border-radius: 50%; background: #CBB79F; }
+  .wagon .kolo.l { left: 2.6vh; } .wagon .kolo.p { right: 2.6vh; }
+  .wagon.ciagniety { z-index: 50; box-shadow: 0 3vh 2vh rgba(75,58,46,.3); transform: scale(1.08); transition: none; }
+  .wagon.wraca { transition: transform .35s cubic-bezier(.3,1.6,.6,1); }
+  .wagon.podpowiedz { animation: podpowiedz .5s ease-in-out 4; }
+  .wagon.wstawiony { box-shadow: none; animation: wskok .35s ease-out; }
+
+  /* zajezdnia z wagonami */
+  .zajezdnia {
+    position: absolute; left: 0; right: 0; bottom: 3vh; height: 30vh;
+    display: flex; justify-content: center; align-items: center; gap: 5vw;
+  }
+  .zajezdnia .gniazdo { width: calc(23vh * var(--k)); height: calc(19vh * var(--k)); position: relative; }
+  .zajezdnia .wagon { position: absolute; left: 0; top: 0; }
+
+  /* karta z obrazkiem */
+  .karta-tlo {
+    position: absolute; inset: 0; z-index: 20; display: none;
+    background: rgba(242,232,217,.85);
+    align-items: center; justify-content: center; gap: 5vw;
+  }
+  .karta-tlo.widoczna { display: flex; }
+  .karta {
+    width: 56vh; padding: 4vh 3vh 3vh; border-radius: 4vh; background: #fff;
+    border: 0.8vh solid var(--kontur); text-align: center; position: relative;
+    box-shadow: 0 1.6vh 0 rgba(75,58,46,.2);
+    animation: wyjazd .7s cubic-bezier(.2,1.4,.5,1);
+  }
+  .karta::before { content: ""; position: absolute; inset: 1.6vh; border-radius: 3vh; border: 0.45vh dashed #D9C9B4; pointer-events: none; }
+  .karta .obrazek { font-size: 30vh; line-height: 1.1; }
+  .karta .slowo { font-size: calc(13vh * var(--k)); font-weight: 900; letter-spacing: .04em; line-height: 1; }
+  .karta .slowo .syl { display: inline-block; transition: transform .2s, color .2s; }
+  .karta .slowo .syl.czytana { transform: translateY(-1.5vh) scale(1.12); color: var(--pomaranczowy); }
+  .karta-prawa { display: flex; flex-direction: column; align-items: center; gap: 4vh; }
+  .latka-karta { height: 46vh; transform-origin: 50% 100%; }
+  #dalej { visibility: hidden; }
+  #dalej.widoczny { visibility: visible; animation: wskok .4s ease-out; }
+
+  /* koniec */
+  #koniec { display: none; place-items: center; text-align: center; }
+  #koniec.aktywny { display: grid; }
+  .koniec-srodek { display: flex; align-items: center; gap: 5vw; }
+  .spiaca { height: 62vh; transform: rotate(-8deg); filter: saturate(.9); }
+  .zzz { position: absolute; font-size: 7vh; font-weight: 900; animation: zzz 2.4s ease-in-out infinite; }
+  .naklejka {
+    width: 30vh; height: 30vh; border-radius: 50%; background: var(--zolty);
+    border: 0.8vh solid var(--kontur); display: grid; place-items: center; font-size: 15vh;
+    position: relative; animation: wyjazd .8s cubic-bezier(.2,1.4,.5,1);
+    box-shadow: 0 1.4vh 0 rgba(75,58,46,.2);
+  }
+  .naklejka::before { content: ""; position: absolute; inset: 1.6vh; border-radius: 50%; border: 0.5vh dashed rgba(255,255,255,.85); }
+
+  @keyframes macha { 0%,100% { transform: rotate(0); } 50% { transform: rotate(12deg); } }
+  @keyframes wbiega { from { transform: translateX(-25vw); } to { transform: none; } }
+  @keyframes jazda { from { transform: translateX(-50%) rotate(-4deg); } to { transform: translateX(-50%) rotate(4deg) translateY(-0.6vh); } }
+  @keyframes marchewka { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { transform: translateY(-4vh) scale(1.15); opacity: 1; } 100% { transform: translateY(-18vh) rotate(30deg); opacity: 0; } }
+  @keyframes kolysanie { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+  @keyframes skok { 0%,100% { transform: translateY(0) scale(1,1); } 15% { transform: translateY(0) scale(1.08,.9); } 50% { transform: translateY(-9vh) scale(.95,1.06) rotate(-4deg); } 85% { transform: translateY(0) scale(1.06,.94); } }
+  @keyframes przechyl { 0%,100% { transform: rotate(0); } 40% { transform: rotate(-9deg); } 70% { transform: rotate(-6deg); } }
+  @keyframes mowi { from { transform: scale(1); } to { transform: scale(1.1); } }
+  @keyframes puls { 0%,100% { background: rgba(255,255,255,.45); } 50% { background: rgba(255,255,255,.9); } }
+  @keyframes podpowiedz { 0%,100% { transform: rotate(0) translateY(0); } 25% { transform: rotate(-7deg) translateY(-2vh); } 75% { transform: rotate(7deg) translateY(-2vh); } }
+  @keyframes wskok { 0% { transform: scale(.7); } 70% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  @keyframes wyjazd { from { transform: translateX(60vw) rotate(8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes zzz { 0% { opacity: 0; transform: translate(0,0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(4vh,-12vh); } }
+</style>
+</head>
+<body>
+
+<!-- START -->
+<section id="start" class="ekran aktywny">
+  <div class="start-srodek">
+    <img class="start-latka" src="img/latka.svg" alt="Łatka">
+    <div class="start-prawa">
+      <div class="tytul">Sylabowy<br>pociąg</div>
+      <div class="gracze">
+        <div class="gracz">
+          <button class="duzy-przycisk" data-gracz="roza" style="background:var(--rozowy)">Róża</button>
+          <div class="naklejki-licznik" id="naklejki-roza"></div>
+        </div>
+        <div class="gracz">
+          <button class="duzy-przycisk" data-gracz="marcelina" style="background:var(--fiolet)">Marcelina</button>
+          <div class="naklejki-licznik" id="naklejki-marcelina"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POZIOM -->
+<section id="poziomy" class="ekran">
+  <button class="glosnik dom" id="do-startu" aria-label="Wróć do wyboru gracza">
+    <svg viewBox="0 0 10 10"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="start-srodek">
+    <img class="start-latka" src="img/latka.svg" alt="Łatka">
+    <div class="poziomy">
+      <button class="duzy-przycisk poziom" data-poziom="0" aria-label="Poziom 1: dwie sylaby" style="background:var(--zielony)">
+        <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i></span>
+      </button>
+      <button class="duzy-przycisk poziom" data-poziom="1" aria-label="Poziom 2: trzy sylaby" style="background:var(--zolty)">
+        <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i><i style="background:var(--fiolet)"></i></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- GRA -->
+<section id="gra" class="ekran">
+  <div class="pasek">
+    <div class="tato" id="tato"><img src="img/tato.svg" alt="Tato"></div>
+    <div class="postep" id="postep"></div>
+    <button class="glosnik" id="powtorz" aria-label="Powtórz polecenie">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#F2C230"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg>
+    </button>
+  </div>
+
+  <div class="scena">
+    <div class="ziemia"></div>
+    <div class="tory"></div>
+    <img class="latka-scena" id="latka" src="img/latka.svg" alt="Łatka">
+    <div class="pociag" id="pociag"></div>
+    <svg class="tunel" viewBox="0 0 300 340" aria-hidden="true">
+      <path d="M0 340 L0 110 Q0 0 150 0 Q300 0 300 110 L300 340 Z" fill="#9A8B7A" stroke="#4B3A2E" stroke-width="10"/>
+      <path d="M14 330 L14 112 Q14 14 150 14 Q286 14 286 112 L286 330" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-dasharray="14 11"/>
+      <path d="M50 340 L50 120 Q50 60 150 60 Q250 60 250 120 L250 340 Z" fill="#3A2C22"/>
+      <g fill="#B5A693" stroke="#4B3A2E" stroke-width="5"><rect x="22" y="40" width="34" height="20" rx="6"/><rect x="244" y="40" width="34" height="20" rx="6"/><rect x="130" y="20" width="40" height="22" rx="6"/></g>
+    </svg>
+    <!-- przód tunelu: pociąg ciemnieje w otworze i chowa się za prawą ścianą -->
+    <svg class="tunel przod" viewBox="0 0 300 340" aria-hidden="true">
+      <defs>
+        <linearGradient id="ciemno" x1="50" x2="185" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#3A2C22" stop-opacity="0"/><stop offset="1" stop-color="#3A2C22"/>
+        </linearGradient>
+        <clipPath id="bez-lewej"><rect x="52" y="0" width="260" height="340"/></clipPath>
+      </defs>
+      <path d="M50 340 L50 120 Q50 60 150 60 Q250 60 250 120 L250 340 Z" fill="url(#ciemno)"/>
+      <g clip-path="url(#bez-lewej)">
+        <path fill-rule="evenodd" d="M0 340 L0 110 Q0 0 150 0 Q300 0 300 110 L300 340 Z M50 340 L50 120 Q50 60 150 60 Q250 60 250 120 L250 340 Z" fill="#9A8B7A" stroke="#4B3A2E" stroke-width="10"/>
+        <path d="M14 330 L14 112 Q14 14 150 14 Q286 14 286 112 L286 330" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-dasharray="14 11"/>
+        <g fill="#B5A693" stroke="#4B3A2E" stroke-width="5"><rect x="244" y="40" width="34" height="20" rx="6"/><rect x="130" y="20" width="40" height="22" rx="6"/></g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="zajezdnia" id="zajezdnia"></div>
+
+  <div class="karta-tlo" id="karta-tlo">
+    <div class="karta">
+      <div class="obrazek" id="karta-obrazek"></div>
+      <div class="slowo" id="karta-slowo"></div>
+    </div>
+    <div class="karta-prawa">
+      <img class="latka-karta" id="latka-karta" src="img/latka.svg" alt="Łatka">
+      <button class="duzy-przycisk" id="dalej" aria-label="Dalej">
+        <svg viewBox="0 0 10 10"><path d="M2 1 L9 5 L2 9 Z" fill="#fff" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- KONIEC -->
+<section id="koniec" class="ekran">
+  <div class="koniec-srodek">
+    <div style="position:relative">
+      <img class="spiaca" src="img/latka.svg" alt="Łatka idzie spać">
+      <span class="zzz" style="right:0;top:6vh">z</span>
+      <span class="zzz" style="right:-3vh;top:2vh;animation-delay:.8s">Z</span>
+      <span class="zzz" style="right:-6vh;top:-2vh;animation-delay:1.6s">Z</span>
+    </div>
+    <div class="start-prawa">
+      <div class="naklejka" id="naklejka"></div>
+      <button class="duzy-przycisk" id="jeszcze" aria-label="Wróć na start" style="background:var(--niebieski)">
+        <svg viewBox="0 0 10 10" style="margin:0"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#fff" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<script>
+// ---------- dane ----------
+// Kolejność od najłatwiejszych (te same sylaby) do trudniejszych.
+// Kolejność w każdym poziomie: od najłatwiejszych do trudniejszych.
+const POZIOMY = [
+  [ // poziom 1: dwie sylaby (+1 wagon, który nie pasuje)
+    { syl: ['MA', 'MA'], obrazek: '👩' },
+    { syl: ['TA', 'TA'], obrazek: '🧔' },
+    { syl: ['LA', 'LA'], obrazek: '🪆' },
+    { syl: ['LA', 'MA'], obrazek: '🦙' },
+    { syl: ['LO', 'DY'], obrazek: '🍦' },
+    { syl: ['KO', 'TY'], obrazek: '🐱🐱' },
+    { syl: ['BU', 'TY'], obrazek: '👟👟' },
+    { syl: ['KO', 'ZA'], obrazek: '🐐' },
+    { syl: ['SO', 'WA'], obrazek: '🦉' },
+    { syl: ['ZU', 'PA'], obrazek: '🍲' },
+    { syl: ['RY', 'BA'], obrazek: '🐟' },
+    { syl: ['NO', 'GA'], obrazek: '🦵' },
+    { syl: ['FO', 'KA'], obrazek: '🦭' },
+    { syl: ['KU', 'RA'], obrazek: '🐔' },
+    { syl: ['WO', 'DA'], obrazek: '💧' },
+  ],
+  [ // poziom 2: trzy sylaby (+1 wagon, który nie pasuje)
+    { syl: ['BA', 'NA', 'NY'], obrazek: '🍌🍌' },
+    { syl: ['BA', 'LO', 'NY'], obrazek: '🎈🎈' },
+    { syl: ['KO', 'RO', 'NA'], obrazek: '👑' },
+    { syl: ['PA', 'PU', 'GA'], obrazek: '🦜' },
+    { syl: ['WA', 'GO', 'NY'], obrazek: '🚃🚃' },
+    { syl: ['MO', 'TY', 'LE'], obrazek: '🦋🦋' },
+    { syl: ['GI', 'TA', 'RA'], obrazek: '🎸' },
+    { syl: ['LI', 'ZA', 'KI'], obrazek: '🍭🍭' },
+    { syl: ['JA', 'GO', 'DY'], obrazek: '🫐' },
+    { syl: ['KA', 'NA', 'PA'], obrazek: '🛋️' },
+    { syl: ['SA', 'ŁA', 'TA'], obrazek: '🥬' },
+    { syl: ['KO', 'GU', 'TY'], obrazek: '🐓🐓' },
+    { syl: ['ŻY', 'RA', 'FA'], obrazek: '🦒' },
+    { syl: ['KO', 'ME', 'TA'], obrazek: '☄️' },
+    { syl: ['MU', 'ZY', 'KA'], obrazek: '🎵🎶' },
+  ],
+];
+const SLOW_W_SESJI = 10; // krótka sesja: 10 losowych słów z poziomu, w kolejności od łatwych
+const WSZYSTKIE_SYLABY = [...new Set(POZIOMY.flat().flatMap(x => x.syl))];
+let slowa = [];
+const KOLORY = ['var(--pomaranczowy)', 'var(--niebieski)', 'var(--fiolet)', 'var(--rozowy)', 'var(--zielony)'];
+const GRACZE = {
+  roza: { wolacz: 'Różo' },
+  marcelina: { wolacz: 'Marcelino' },
+};
+let gracz = 'roza';
+const pochwaly = () => [`Brawo, ${GRACZE[gracz].wolacz}!`, `Super, ${GRACZE[gracz].wolacz}!`, 'Świetnie!', 'Pięknie czytasz!', 'Hurra! Brawo!'];
+const NAKLEJKI = ['⭐', '🌈', '🥕', '🌻', '🚂', '🦋', '🍓', '🎈', '🐞', '🌙'];
+
+// ---------- pamięć (tylko na tym urządzeniu) ----------
+const pamiec = {
+  wszystko() {
+    let d; try { d = JSON.parse(localStorage.getItem('czytamy') || '{}'); } catch { d = {}; }
+    if (!d.gracze) d = { gracze: { roza: d } }; // dane sprzed wyboru gracza należą do Róży
+    return d;
+  },
+  czytaj(kto = gracz) { return this.wszystko().gracze[kto] || {}; },
+  zapisz(dane, kto = gracz) {
+    const d = this.wszystko(); d.gracze[kto] = dane;
+    try { localStorage.setItem('czytamy', JSON.stringify(d)); } catch {}
+  },
+};
+function dopiszBlad(syl) {
+  const d = pamiec.czytaj(); d.bledy = d.bledy || {};
+  d.bledy[syl] = (d.bledy[syl] || 0) + 1; pamiec.zapisz(d);
+}
+
+// ---------- głos (na razie syntezator iPada) ----------
+let glosPL = null;
+function wybierzGlos() {
+  const glosy = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('pl'));
+  glosPL = glosy.find(v => /zosia|ewa|paulina|krzysztof/i.test(v.name)) || glosy[0] || null;
+}
+if ('speechSynthesis' in window) { wybierzGlos(); speechSynthesis.onvoiceschanged = wybierzGlos; }
+
+const tato = document.getElementById('tato');
+
+// Nagrania głosu Taty (ElevenLabs) w glos/<nazwa>.mp3. Brak pliku = syntezator iPada.
+const NAGRANIA = {
+  'Ułóż słowo:': 'uloz-slowo', 'To jest': 'to-jest', 'Szukamy:': 'szukamy',
+  'Spróbuj jeszcze raz.': 'sprobuj', 'Cześć, Różo! Jedziemy!': 'czesc',
+  'Brawo, Różo!': 'brawo-1', 'Super, Różo!': 'brawo-2', 'Świetnie!': 'brawo-3',
+  'Pięknie czytasz!': 'brawo-4', 'Hurra! Brawo!': 'brawo-5',
+  'Brawo, Różo! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!': 'koniec',
+  'Cześć, Marcelino! Jedziemy!': 'czesc-marcelina', 'Brawo, Marcelino!': 'brawo-1-marcelina',
+  'Super, Marcelino!': 'brawo-2-marcelina',
+  'Brawo, Marcelino! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!': 'koniec-marcelina',
+};
+const nazwaPliku = t => NAGRANIA[t] || (/^[A-ZĄĆĘŁŃÓŚŹŻ]+$/.test(t) ? (t.length <= 2 ? 'syl-' : 'slowo-') + t.toLowerCase() : null);
+const odtwarzacz = new Audio();
+const brakujace = new Set();
+let wypowiedz = 0;  // rośnie przy każdym przerwij(): stare wypowiedzi milkną zamiast mówić dalej
+let zatrzymajGranie = null;
+
+// Wynik: 'ok' (zagrane), 'przerwane' (ktoś przerwał) albo 'brak' (pliku nie ma albo nie da się go zagrać).
+function graj(nazwa) {
+  return new Promise(resolve => {
+    let koniec = false, stoper;
+    const zakoncz = wynik => {
+      if (koniec) return; koniec = true; clearTimeout(stoper);
+      if (zatrzymajGranie === zakoncz) { zatrzymajGranie = null; odtwarzacz.onended = odtwarzacz.onerror = null; }
+      resolve(wynik);
+    };
+    zatrzymajGranie = zakoncz;
+    odtwarzacz.onended = () => zakoncz('ok');
+    odtwarzacz.onerror = () => { brakujace.add(nazwa); zakoncz('brak'); };
+    odtwarzacz.src = `glos/${nazwa}.mp3`;
+    // AbortError = nagranie przerwane nowym, to nie powód, żeby włączać syntezator
+    odtwarzacz.play().catch(e => zakoncz(e && e.name === 'AbortError' ? 'przerwane' : 'brak'));
+    stoper = setTimeout(() => zakoncz('ok'), 8000);
+  });
+}
+
+// Mówi kawałek po kawałku: ['To jest', 'KO'] → dwa nagrania jedno po drugim.
+async function powiedz(tekst, opcje = {}) {
+  const czesci = Array.isArray(tekst) ? tekst : [tekst];
+  const moja = wypowiedz;
+  tato.classList.add('mowi');
+  for (const c of czesci) {
+    if (moja !== wypowiedz) return;
+    const plik = nazwaPliku(c);
+    const wynik = plik && !brakujace.has(plik) ? await graj(plik) : 'brak';
+    if (moja !== wypowiedz || wynik === 'przerwane') return;
+    if (wynik === 'brak') await mowSyntezatorem(c, opcje);
+  }
+  if (moja === wypowiedz) tato.classList.remove('mowi');
+}
+
+function mowSyntezatorem(tekst, { tempo = 0.85 } = {}) {
+  return new Promise(resolve => {
+    if (!('speechSynthesis' in window)) return setTimeout(resolve, 600);
+    const u = new SpeechSynthesisUtterance(tekst.toLowerCase());
+    u.lang = 'pl-PL'; u.rate = tempo; u.pitch = 1.05;
+    if (glosPL) u.voice = glosPL;
+    let koniec = false;
+    const zakoncz = () => { if (koniec) return; koniec = true; resolve(); };
+    u.onend = zakoncz; u.onerror = zakoncz;
+    setTimeout(zakoncz, 900 + tekst.length * 140); // zabezpieczenie, gdy onend nie przyjdzie
+    speechSynthesis.speak(u);
+  });
+}
+function przerwij() {
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  wypowiedz++;
+  odtwarzacz.pause();
+  if (zatrzymajGranie) zatrzymajGranie('przerwane');
+  tato.classList.remove('mowi');
+}
+const czekaj = ms => new Promise(r => setTimeout(r, ms));
+
+// ---------- ekrany ----------
+function pokaz(id) {
+  document.querySelectorAll('.ekran').forEach(e => e.classList.toggle('aktywny', e.id === id));
+}
+function odswiezStart() {
+  for (const kto of Object.keys(GRACZE)) {
+    const naklejki = pamiec.czytaj(kto).naklejki || [];
+    const n = naklejki.length;
+    document.getElementById('naklejki-' + kto).textContent = n ? `${naklejki.slice(-4).join(' ')}${n > 4 ? '  +' + (n - 4) : ''}` : '';
+  }
+}
+
+// ---------- gra ----------
+const el = {
+  pociag: document.getElementById('pociag'),
+  zajezdnia: document.getElementById('zajezdnia'),
+  postep: document.getElementById('postep'),
+  latka: document.getElementById('latka'),
+  kartaTlo: document.getElementById('karta-tlo'),
+  kartaObrazek: document.getElementById('karta-obrazek'),
+  kartaSlowo: document.getElementById('karta-slowo'),
+  latkaKarta: document.getElementById('latka-karta'),
+  dalej: document.getElementById('dalej'),
+};
+let nr = 0, wstawione = 0, bledyTeraz = 0, zablokowane = false, powitanie = null;
+
+const LOKOMOTYWA = `
+<svg class="lokomotywa" viewBox="0 0 300 300" aria-hidden="true">
+  <g stroke="#4B3A2E" stroke-width="9" stroke-linejoin="round">
+    <rect x="150" y="40" width="40" height="70" rx="6" fill="#4B3A2E"/>
+    <rect x="135" y="28" width="70" height="24" rx="8" fill="#5B4A3E"/>
+    <rect x="20" y="70" width="110" height="160" rx="16" fill="#D9643A"/>
+    <rect x="42" y="96" width="66" height="56" rx="10" fill="#CFE6F2"/>
+    <path d="M125 120 H250 Q280 120 280 150 V230 H125 Z" fill="#3F6FB5"/>
+    <rect x="8" y="56" width="134" height="26" rx="10" fill="#F2C230"/>
+    <path d="M280 205 L298 236 H262 Z" fill="#F2C230"/>
+  </g>
+  <path d="M34 108 V216 M138 134 H266 Q272 134 272 144" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="5" stroke-dasharray="12 9"/>
+  <g stroke="#4B3A2E" stroke-width="9" fill="#5B4A3E">
+    <circle cx="70" cy="245" r="38"/><circle cx="190" cy="252" r="30"/><circle cx="252" cy="252" r="30"/>
+  </g>
+  <g fill="#CBB79F"><circle cx="70" cy="245" r="13"/><circle cx="190" cy="252" r="10"/><circle cx="252" cy="252" r="10"/></g>
+</svg>`;
+
+function zrobWagon(syl, kolor) {
+  const w = document.createElement('div');
+  w.className = 'wagon';
+  w.style.background = kolor;
+  w.dataset.syl = syl;
+  w.innerHTML = `<span>${syl}</span><i class="kolo l"></i><i class="kolo p"></i>`;
+  return w;
+}
+
+function narysujPostep() {
+  el.postep.innerHTML = slowa.map((_, i) => `<span class="${i < nr ? 'zrobione' : i === nr ? 'teraz' : ''}"></span>`).join('');
+}
+
+function tasuj(t) { for (let i = t.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [t[i], t[j]] = [t[j], t[i]]; } return t; }
+
+function polecenie() {
+  const s = slowa[nr];
+  return powiedz(['Ułóż słowo:', s.syl.join('')]);
+}
+
+async function nowaRunda() {
+  const s = slowa[nr];
+  wstawione = 0; bledyTeraz = 0; zablokowane = false;
+  narysujPostep();
+  el.kartaTlo.classList.remove('widoczna');
+  el.dalej.classList.remove('widoczny');
+
+  // pociąg: puste miejsca + lokomotywa (czytamy od lewej do prawej)
+  el.pociag.classList.remove('odjazd');
+  el.pociag.style.transition = 'none';
+  el.pociag.style.transform = 'translateX(-110vw)';
+  el.pociag.innerHTML = s.syl.map((_, i) => `<div class="miejsce" data-i="${i}"></div>`).join('') + LOKOMOTYWA;
+  el.pociag.offsetWidth;
+  el.pociag.style.transition = 'transform 1.4s cubic-bezier(.2,.7,.3,1)';
+  el.pociag.style.transform = '';
+
+  // wagony w zajezdni
+  const sylaby = [...s.syl];
+  const inne = WSZYSTKIE_SYLABY.filter(x => !s.syl.includes(x)); // jeden wagon zawsze „nie pasuje”
+  sylaby.push(inne[Math.floor(Math.random() * inne.length)]);
+  let kolejnosc = tasuj(sylaby.map((x, i) => i));
+  if (kolejnosc.every((v, i) => v === i) && new Set(s.syl).size > 1) kolejnosc = kolejnosc.reverse(); // nie podawaj gotowej odpowiedzi
+  const kolory = tasuj([...KOLORY]);
+  el.zajezdnia.innerHTML = '';
+  kolejnosc.forEach((idx, k) => {
+    const g = document.createElement('div');
+    g.className = 'gniazdo';
+    const w = zrobWagon(sylaby[idx], kolory[k % kolory.length]);
+    g.appendChild(w);
+    el.zajezdnia.appendChild(g);
+    podepnijPrzeciaganie(w);
+  });
+
+  zaznaczNastepne();
+  if (el.latka.classList.contains('schowana')) { el.latka.classList.remove('schowana'); animuj(el.latka, 'wraca'); }
+  obudzBezczynnosc();
+  await czekaj(900);
+  await powitanie; // nie ucinaj „Cześć, Różo!”
+  powitanie = null;
+  przerwij();
+  await polecenie();
+}
+
+// ---------- akcje Łatki ----------
+function animuj(elm, klasa) { elm.classList.remove(klasa); elm.offsetWidth; elm.classList.add(klasa); }
+el.latka.addEventListener('animationend', e => {
+  if (e.animationName !== 'kolysanie') el.latka.classList.remove('hop', 'mysli', 'macha', 'wraca', 'skacze');
+});
+function marchewka(rodzic, x, y) {
+  const m = document.createElement('span');
+  m.className = 'marchewka'; m.textContent = '🥕';
+  m.style.left = x; m.style.top = y;
+  rodzic.appendChild(m);
+  setTimeout(() => m.remove(), 1400);
+}
+// dotknięcie Łatki: podskok i marchewka
+el.latka.addEventListener('pointerdown', () => {
+  if (el.latka.classList.contains('schowana')) return;
+  animuj(el.latka, 'skacze');
+  const r = el.latka.getBoundingClientRect(), sr = el.latka.parentElement.getBoundingClientRect();
+  marchewka(el.latka.parentElement, (r.left - sr.left + r.width * .3) + 'px', (r.top - sr.top) + 'px');
+});
+// gdy dziecko długo nic nie robi, Łatka podskakuje i pokazuje właściwy wagon
+let stoperBezczynnosci;
+function obudzBezczynnosc() {
+  clearTimeout(stoperBezczynnosci);
+  stoperBezczynnosci = setTimeout(() => {
+    if (zablokowane || !document.getElementById('gra').classList.contains('aktywny')) return;
+    animuj(el.latka, 'hop');
+    const dobry = [...el.zajezdnia.querySelectorAll('.wagon')].find(x => x.dataset.syl === slowa[nr].syl[wstawione]);
+    if (dobry) animuj(dobry, 'podpowiedz');
+    obudzBezczynnosc();
+  }, 12000);
+}
+document.getElementById('gra').addEventListener('pointerdown', obudzBezczynnosc);
+
+function zaznaczNastepne() {
+  el.pociag.querySelectorAll('.miejsce').forEach((m, i) => m.classList.toggle('nastepne', i === wstawione));
+}
+
+// ---------- przeciąganie palcem ----------
+function podepnijPrzeciaganie(w) {
+  let startX, startY, ruszyl = false, aktywny = false;
+
+  w.addEventListener('pointerdown', e => {
+    if (zablokowane || w.closest('.miejsce')) return;
+    aktywny = true; ruszyl = false;
+    startX = e.clientX; startY = e.clientY;
+    w.setPointerCapture(e.pointerId);
+    w.classList.remove('wraca', 'podpowiedz');
+  });
+
+  w.addEventListener('pointermove', e => {
+    if (!aktywny) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (!ruszyl && Math.hypot(dx, dy) > 10) { ruszyl = true; w.classList.add('ciagniety'); }
+    if (ruszyl) {
+      w.style.transform = `translate(${dx}px, ${dy}px) scale(1.08)`;
+      const m = miejsceNastepne();
+      if (m) m.classList.toggle('cel', nadPociagiem(e.clientX, e.clientY));
+    }
+  });
+
+  const pusc = async e => {
+    if (!aktywny) return;
+    aktywny = false;
+    w.classList.remove('ciagniety');
+    const m = miejsceNastepne();
+    if (m) m.classList.remove('cel');
+
+    if (!ruszyl) { // samo dotknięcie = posłuchaj sylaby
+      w.style.transform = '';
+      przerwij(); powiedz(w.dataset.syl, { tempo: 0.75 });
+      return;
+    }
+    if (nadPociagiem(e.clientX, e.clientY)) await sprobujWstawic(w);
+    else wroc(w);
+  };
+  w.addEventListener('pointerup', pusc);
+  w.addEventListener('pointercancel', pusc);
+}
+
+function miejsceNastepne() { return el.pociag.querySelectorAll('.miejsce')[wstawione] || null; }
+function nadPociagiem(x, y) {
+  const r = el.pociag.getBoundingClientRect();
+  const zapas = window.innerHeight * 0.06;
+  return x > r.left - zapas && x < r.right + zapas && y > r.top - zapas && y < r.bottom + zapas * 2;
+}
+function wroc(w) {
+  w.classList.add('wraca');
+  w.style.transform = '';
+  setTimeout(() => w.classList.remove('wraca'), 400);
+}
+
+async function sprobujWstawic(w) {
+  const s = slowa[nr];
+  const potrzebna = s.syl[wstawione];
+  if (w.dataset.syl === potrzebna) {
+    const m = miejsceNastepne();
+    w.style.transform = '';
+    m.appendChild(w);
+    w.classList.add('wstawiony');
+    wstawione++; bledyTeraz = 0;
+    zaznaczNastepne();
+    animuj(el.latka, 'hop');
+    przerwij();
+    if (wstawione === s.syl.length) return slowoGotowe();
+    await powiedz(w.dataset.syl, { tempo: 0.75 });
+    return;
+  }
+  // zły wagon: bez kary, tylko podpowiedź
+  wroc(w);
+  bledyTeraz++;
+  dopiszBlad(potrzebna);
+  el.latka.classList.remove('mysli'); el.latka.offsetWidth; el.latka.classList.add('mysli');
+  przerwij();
+  await powiedz(['To jest', w.dataset.syl], { tempo: 0.8 });
+  if (bledyTeraz >= 2) {
+    const dobry = [...el.zajezdnia.querySelectorAll('.wagon')].find(x => x.dataset.syl === potrzebna);
+    if (dobry) { dobry.classList.remove('podpowiedz'); dobry.offsetWidth; dobry.classList.add('podpowiedz'); }
+    await powiedz(['Szukamy:', potrzebna], { tempo: 0.8 });
+  } else {
+    await powiedz('Spróbuj jeszcze raz.');
+  }
+}
+
+async function slowoGotowe() {
+  zablokowane = true;
+  const s = slowa[nr];
+  el.pociag.querySelectorAll('.miejsce').forEach(m => m.classList.remove('nastepne'));
+  el.zajezdnia.querySelectorAll('.wagon').forEach(w => { w.style.transition = 'opacity .4s'; w.style.opacity = '0'; });
+
+  // sylaba po sylabie, potem całe słowo
+  const wagony = [...el.pociag.querySelectorAll('.miejsce .wagon')];
+  for (let i = 0; i < s.syl.length; i++) {
+    wagony[i].classList.remove('wstawiony'); wagony[i].offsetWidth; wagony[i].classList.add('wstawiony');
+    await powiedz(s.syl[i], { tempo: 0.7 });
+    await czekaj(150);
+  }
+  await powiedz(s.syl.join(''), { tempo: 0.8 });
+
+  // pociąg wjeżdża do tunelu; co trzecie słowo Łatka jedzie z nim, inaczej macha na pożegnanie
+  if (nr % 3 === 2) {
+    const pasazer = document.createElement('img');
+    pasazer.className = 'pasazer'; pasazer.src = 'img/latka.svg'; pasazer.alt = '';
+    wagony[0].appendChild(pasazer);
+    el.latka.classList.add('schowana');
+    await czekaj(500);
+  } else {
+    animuj(el.latka, 'macha');
+  }
+  el.pociag.style.transition = '';
+  el.pociag.style.transform = '';
+  el.pociag.classList.add('odjazd');
+  await czekaj(1900);
+
+  // obrazek wyjeżdża z tunelu
+  el.kartaObrazek.textContent = s.obrazek;
+  el.kartaSlowo.innerHTML = s.syl.map(x => `<span class="syl">${x}</span>`).join('');
+  el.kartaTlo.classList.add('widoczna');
+  const karta = el.kartaTlo.querySelector('.karta');
+  karta.style.animation = 'none'; karta.offsetWidth; karta.style.animation = '';
+  el.latkaKarta.classList.remove('skacze'); el.latkaKarta.offsetWidth; el.latkaKarta.classList.add('skacze');
+  const prawa = el.latkaKarta.parentElement;
+  [0, 450, 900].forEach((t, i) => setTimeout(() => marchewka(prawa, (30 + i * 20) + '%', '10%'), t));
+
+  const spany = el.kartaSlowo.querySelectorAll('.syl');
+  for (let i = 0; i < spany.length; i++) {
+    spany[i].classList.add('czytana');
+    await powiedz(s.syl[i], { tempo: 0.7 });
+    spany[i].classList.remove('czytana');
+  }
+  await powiedz(s.syl.join(''), { tempo: 0.8 });
+  const p = pochwaly();
+  await powiedz(p[Math.floor(Math.random() * p.length)], { tempo: 0.95 });
+  el.dalej.classList.add('widoczny');
+}
+
+async function dalej() {
+  przerwij();
+  nr++;
+  if (nr >= slowa.length) return koniecSesji();
+  nowaRunda();
+}
+
+async function koniecSesji() {
+  const d = pamiec.czytaj();
+  d.naklejki = d.naklejki || [];
+  const naklejka = NAKLEJKI[d.naklejki.length % NAKLEJKI.length];
+  d.naklejki.push(naklejka);
+  d.sesje = (d.sesje || 0) + 1;
+  pamiec.zapisz(d);
+  document.getElementById('naklejka').textContent = naklejka;
+  pokaz('koniec');
+  await powiedz(`Brawo, ${GRACZE[gracz].wolacz}! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!`, { tempo: 0.9 });
+}
+
+// ---------- przyciski ----------
+document.querySelectorAll('[data-gracz]').forEach(b => b.addEventListener('click', () => {
+  gracz = b.dataset.gracz;
+  pokaz('poziomy');
+}));
+document.getElementById('do-startu').addEventListener('click', () => pokaz('start'));
+document.querySelectorAll('[data-poziom]').forEach(b => b.addEventListener('click', () => {
+  // iPad odblokowuje dźwięk dopiero po dotknięciu, więc pierwsze słowa padają tutaj
+  const pula = POZIOMY[+b.dataset.poziom];
+  const wybrane = tasuj(pula.map((_, i) => i)).slice(0, SLOW_W_SESJI).sort((x, y) => x - y);
+  slowa = wybrane.map(i => pula[i]);
+  document.getElementById('gra').classList.toggle('trzy', slowa[0].syl.length === 3);
+  wybierzGlos();
+  przerwij();
+  powitanie = powiedz(`Cześć, ${GRACZE[gracz].wolacz}! Jedziemy!`, { tempo: 0.95 });
+  nr = 0;
+  pokaz('gra');
+  nowaRunda();
+}));
+document.getElementById('powtorz').addEventListener('click', () => { przerwij(); if (!zablokowane) polecenie(); });
+el.dalej.addEventListener('click', dalej);
+document.getElementById('jeszcze').addEventListener('click', () => { przerwij(); odswiezStart(); pokaz('start'); });
+
+odswiezStart();
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
