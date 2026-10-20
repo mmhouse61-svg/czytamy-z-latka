@@ -73,11 +73,16 @@
   /* ---------- wybór poziomu ---------- */
   #poziomy { display: none; place-items: center; }
   #poziomy.aktywny { display: grid; }
-  .poziomy { display: flex; flex-direction: column; gap: 5vh; }
-  .poziom.duzy-przycisk { width: 50vh; height: 24vh; border-radius: 4vh; }
-  .poziom.duzy-przycisk::before { border-radius: 3vh; }
-  .mini-pociag { display: flex; gap: 1.6vh; position: relative; z-index: 1; }
-  .mini-pociag i { width: 10vh; height: 8.5vh; border-radius: 1.4vh; border: 0.6vh solid var(--kontur); }
+  .zabawy { display: grid; grid-template-columns: repeat(3, 23vh); gap: 2.6vh; }
+  .zabawy .duzy-przycisk { width: 23vh; height: 23vh; border-radius: 4vh; font-size: 8vh; font-weight: 900; color: #fff;
+    text-shadow: 0 0.5vh 0 rgba(75,58,46,.45); }
+  .zabawy .duzy-przycisk::before { border-radius: 3vh; }
+  .zabawy .duzy-przycisk > span { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+  .zabawy small { font-size: 5.4vh; letter-spacing: .04em; }
+  .mala { height: 46vh; }
+  .zabawy .duzy-przycisk > .mini-pociag { flex-direction: row; gap: 1vh; }
+  .mini-pociag { display: flex; gap: 1vh; position: relative; z-index: 1; }
+  .mini-pociag i { width: 5.2vh; height: 5vh; border-radius: 1vh; border: 0.5vh solid var(--kontur); }
   .dom { position: absolute; top: 3vh; left: 3vw; z-index: 2; }
 
   /* ---------- gra ---------- */
@@ -207,6 +212,9 @@
   }
   .karta::before { content: ""; position: absolute; inset: 1.6vh; border-radius: 3vh; border: 0.45vh dashed #D9C9B4; pointer-events: none; }
   .karta .obrazek { font-size: 30vh; line-height: 1.1; }
+  .karta .obrazek img { height: 30vh; width: 30vh; object-fit: cover; border-radius: 2.5vh; display: block; margin: 0 auto; }
+  .opcja.obraz { overflow: hidden; }
+  .opcja.obraz img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
   .karta .slowo { font-size: calc(13vh * var(--k)); font-weight: 900; letter-spacing: .04em; line-height: 1; }
   .karta .slowo .syl { display: inline-block; transition: transform .2s, color .2s; }
   .karta .slowo .syl.czytana { transform: translateY(-1.5vh) scale(1.12); color: var(--pomaranczowy); }
@@ -214,6 +222,38 @@
   .latka-karta { height: 46vh; transform-origin: 50% 100%; }
   #dalej { visibility: hidden; }
   #dalej.widoczny { visibility: visible; animation: wskok .4s ease-out; }
+
+  /* zabawy z wyborem: litery, sylaby, obrazki, karmienie Łatki */
+  #zabawa { overflow: hidden; }
+  .gora { position: absolute; left: 0; right: 0; top: 14vh; height: 42vh; display: flex; align-items: center; justify-content: center; gap: 7vw; }
+  .latka-z { height: 38vh; transform-origin: 50% 100%; animation: kolysanie 3s ease-in-out infinite; }
+  .latka-z.skacze, .latka-z.hop { animation: skok .55s ease-out 1; }
+  .latka-z.mysli { animation: przechyl 1s ease-in-out 1; }
+  .prompt-slowo { font-size: 15vh; font-weight: 900; letter-spacing: .03em; line-height: 1; background: #fff; border: 0.8vh solid var(--kontur);
+    border-radius: 4vh; padding: 3.2vh 4vh; box-shadow: 0 1.4vh 0 rgba(75,58,46,.2); }
+  .prompt-slowo .syl { display: inline-block; margin: 0 .6vh; transition: transform .2s; }
+  .prompt-slowo .syl.s0 { color: var(--pomaranczowy); } .prompt-slowo .syl.s1 { color: var(--niebieski); } .prompt-slowo .syl.s2 { color: var(--fiolet); }
+  .prompt-slowo .syl.czytana { transform: translateY(-1.5vh) scale(1.12); }
+  #z-glos { width: 26vh; height: 26vh; background: var(--zolty); }
+  .opcje { position: absolute; left: 0; right: 0; bottom: 4vh; height: 30vh; display: flex; justify-content: center; align-items: center; gap: 4vw; }
+  .opcja {
+    width: 32vh; height: 27vh; border-radius: 3vh; border: 0.7vh solid var(--kontur); position: relative;
+    display: grid; place-items: center; font-size: 13vh; font-weight: 900; letter-spacing: .03em; color: #fff;
+    text-shadow: 0 0.5vh 0 rgba(75,58,46,.45); box-shadow: 0 1vh 0 rgba(75,58,46,.25); touch-action: none;
+    transition: transform .15s, opacity .35s;
+  }
+  .opcja::before { content: ""; position: absolute; inset: 1.2vh; border-radius: 2vh; border: 0.45vh dashed rgba(255,255,255,.7); pointer-events: none; }
+  .opcja.obraz { background: #fff; color: var(--kontur); text-shadow: none; font-size: 12vh; }
+  .opcja.obraz::before { border-color: #D9C9B4; }
+  .opcja.marchew { background: var(--pomaranczowy); border-radius: 4vh 4vh 9vh 9vh; }
+  .opcja.marchew::after { content: "🌿"; position: absolute; top: -5.4vh; left: 50%; transform: translateX(-50%); font-size: 6vh; text-shadow: none; }
+  .opcja.wraca { transition: transform .35s cubic-bezier(.3,1.6,.6,1); }
+  .opcja:active { transform: scale(.95); }
+  .opcja.ciagniety { z-index: 50; box-shadow: 0 3vh 2vh rgba(75,58,46,.3); transition: none; }
+  .opcja.dobra { background: #8FD19E !important; animation: wskok .35s ease-out; }
+  .opcja.zla { animation: trzesie .4s ease-in-out; }
+  .opcja.podpowiedz { animation: podpowiedz .5s ease-in-out 4; }
+  @keyframes trzesie { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-1.6vh); } 50% { transform: translateX(1.6vh); } 80% { transform: translateX(-1vh); } }
 
   /* koniec */
   #koniec { display: none; place-items: center; text-align: center; }
@@ -251,7 +291,7 @@
   <div class="start-srodek">
     <img class="start-latka" src="img/latka.svg" alt="Łatka">
     <div class="start-prawa">
-      <div class="tytul">Sylabowy<br>pociąg</div>
+      <div class="tytul">Czytamy<br>z Łatką</div>
       <div class="gracze">
         <div class="gracz">
           <button class="duzy-przycisk" data-gracz="roza" style="background:var(--rozowy)">Róża</button>
@@ -272,14 +312,18 @@
     <svg viewBox="0 0 10 10"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
   </button>
   <div class="start-srodek">
-    <img class="start-latka" src="img/latka.svg" alt="Łatka">
-    <div class="poziomy">
-      <button class="duzy-przycisk poziom" data-poziom="0" aria-label="Poziom 1: dwie sylaby" style="background:var(--zielony)">
+    <img class="start-latka mala" src="img/latka.svg" alt="Łatka">
+    <div class="zabawy">
+      <button class="duzy-przycisk" data-zabawa="litery" aria-label="Litery: samogłoski" style="background:var(--niebieski)"><span>A O</span></button>
+      <button class="duzy-przycisk" data-zabawa="sylaby" aria-label="Znajdź sylabę" style="background:var(--fiolet)"><span>MA</span></button>
+      <button class="duzy-przycisk" data-zabawa="nakarm" aria-label="Nakarm Łatkę" style="background:var(--pomaranczowy)"><span>🥕</span></button>
+      <button class="duzy-przycisk" data-zabawa="pociag0" aria-label="Pociąg: dwie sylaby" style="background:var(--zielony)">
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i></span>
       </button>
-      <button class="duzy-przycisk poziom" data-poziom="1" aria-label="Poziom 2: trzy sylaby" style="background:var(--zolty)">
+      <button class="duzy-przycisk" data-zabawa="pociag1" aria-label="Pociąg: trzy sylaby" style="background:var(--zolty)">
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i><i style="background:var(--fiolet)"></i></span>
       </button>
+      <button class="duzy-przycisk" data-zabawa="obrazki" aria-label="Znajdź obrazek" style="background:var(--rozowy)"><span>🐱<small>KOT</small></span></button>
     </div>
   </div>
 </section>
@@ -291,7 +335,7 @@
       <button class="glosnik" id="do-domu" aria-label="Wróć na ekran główny">
         <svg viewBox="0 0 10 10" style="width:50%;height:50%"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
       </button>
-      <div class="tato" id="tato"><img src="img/tato.svg" alt="Tato"></div>
+      <div class="tato"><img src="img/tato.svg" alt="Tato"></div>
     </div>
     <div class="postep" id="postep"></div>
     <button class="glosnik" id="powtorz" aria-label="Powtórz polecenie">
@@ -341,6 +385,23 @@
       </button>
     </div>
   </div>
+</section>
+
+<!-- ZABAWY Z WYBOREM -->
+<section id="zabawa" class="ekran">
+  <div class="pasek">
+    <div class="lewa-grupa">
+      <button class="glosnik" id="z-dom" aria-label="Wróć na ekran główny"><svg viewBox="0 0 10 10" style="width:50%;height:50%"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg></button>
+      <div class="tato"><img src="img/tato.svg" alt="Tato"></div>
+    </div>
+    <div class="postep" id="z-postep"></div>
+    <button class="glosnik" id="z-powtorz" aria-label="Powtórz polecenie"><svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#F2C230"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+  </div>
+  <div class="gora" id="z-gora">
+    <img class="latka-z" id="z-latka" src="img/latka.svg" alt="Łatka">
+    <div id="z-prompt"></div>
+  </div>
+  <div class="opcje" id="z-opcje"></div>
 </section>
 
 <!-- KONIEC -->
@@ -411,8 +472,17 @@ const POZIOMY = [
     { syl: ['KO', 'ZA', 'KI'], obrazek: '🥾' },
   ],
 ];
+// Obrazki w stylu notato: app/obrazki/<słowo bez polskich znaków>.webp. Bez pliku zostaje emoji.
+const OBRAZKI_JEST = new Set(["balony", "banany", "buty", "fala", "foka", "gitara", "jagody", "kanapa", "kawa", "kino", "koguty", "kometa", "korale", "korona", "koty", "koza", "kozaki", "kuku", "kura", "lala", "lama", "lizaki", "lody", "malina", "mama", "melony", "motyle", "muzyka", "noga", "papuga", "ryba", "salata", "sowa", "tata", "waga", "wagony", "woda", "zabawa", "zupa", "zyrafa"]);
+const bezOgonkow = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L').toLowerCase();
+function obrazekHtml(s) {
+  const k = bezOgonkow(s.syl.join(''));
+  return OBRAZKI_JEST.has(k) ? `<img src="obrazki/${k}.webp" alt="">` : s.obrazek;
+}
+const SAMOGLOSKI = ['A', 'O', 'U', 'E', 'I', 'Y'];
 const SLOW_W_SESJI = 10; // krótka sesja: 10 losowych słów z poziomu, w kolejności od łatwych
 const WSZYSTKIE_SYLABY = [...new Set(POZIOMY.flat().flatMap(x => x.syl))];
+const WSZYSTKIE_SLOWA = POZIOMY.flat();
 let slowa = [];
 const KOLORY = ['var(--pomaranczowy)', 'var(--niebieski)', 'var(--fiolet)', 'var(--rozowy)', 'var(--zielony)'];
 const GRACZE = {
@@ -436,6 +506,28 @@ const pamiec = {
     try { localStorage.setItem('czytamy', JSON.stringify(d)); } catch {}
   },
 };
+// Postęp per pozycja (słowo, sylaba, litera): ile razy zrobione, błędy, ile razy z rzędu bez błędu, kiedy ostatnio.
+function zapiszWynik(klucz, bledy) {
+  const d = pamiec.czytaj(); d.postep = d.postep || {};
+  const p = d.postep[klucz] || { n: 0, bl: 0, czyste: 0 };
+  p.n++; p.bl += bledy; p.czyste = bledy ? 0 : p.czyste + 1; p.ost = Date.now();
+  d.postep[klucz] = p; pamiec.zapisz(d);
+}
+// Wybiera do sesji to, co najbardziej potrzebne: najpierw nowe, potem trudne, na końcu opanowane (te wracają po kilku dniach).
+function wybierzSesje(pula, klucz, ile = SLOW_W_SESJI, losowo = false) {
+  const postep = pamiec.czytaj().postep || {};
+  const teraz = Date.now();
+  const ocena = x => {
+    const p = postep[klucz(x)];
+    if (!p) return 6;
+    const dni = Math.min((teraz - p.ost) / 864e5, 7);
+    return (p.czyste >= 2 ? 0 : 3) + Math.min(p.bl, 6) * .5 + dni * .4;
+  };
+  const wybrane = pula.map((x, i) => ({ x, i, o: ocena(x) + Math.random() * 2 }))
+    .sort((a, b) => b.o - a.o).slice(0, ile);
+  if (!losowo) wybrane.sort((a, b) => a.i - b.i); // pociąg: od łatwych do trudnych
+  return wybrane.map(v => v.x);
+}
 function dopiszBlad(syl) {
   const d = pamiec.czytaj(); d.bledy = d.bledy || {};
   d.bledy[syl] = (d.bledy[syl] || 0) + 1; pamiec.zapisz(d);
@@ -449,7 +541,8 @@ function wybierzGlos() {
 }
 if ('speechSynthesis' in window) { wybierzGlos(); speechSynthesis.onvoiceschanged = wybierzGlos; }
 
-const tato = document.getElementById('tato');
+const tatoEls = document.querySelectorAll('.tato');
+const tatoMowi = on => tatoEls.forEach(t => t.classList.toggle('mowi', on));
 
 // Nagrania głosu Taty (ElevenLabs) w glos/<nazwa>.mp3. Brak pliku = syntezator iPada.
 const NAGRANIA = {
@@ -491,7 +584,7 @@ function graj(nazwa) {
 async function powiedz(tekst, opcje = {}) {
   const czesci = Array.isArray(tekst) ? tekst : [tekst];
   const moja = wypowiedz;
-  tato.classList.add('mowi');
+  tatoMowi(true);
   for (const c of czesci) {
     if (moja !== wypowiedz) return;
     const plik = nazwaPliku(c);
@@ -499,7 +592,7 @@ async function powiedz(tekst, opcje = {}) {
     if (moja !== wypowiedz || wynik === 'przerwane') return;
     if (wynik === 'brak') await mowSyntezatorem(c, opcje);
   }
-  if (moja === wypowiedz) tato.classList.remove('mowi');
+  if (moja === wypowiedz) tatoMowi(false);
 }
 
 function mowSyntezatorem(tekst, { tempo = 0.85 } = {}) {
@@ -520,7 +613,7 @@ function przerwij() {
   wypowiedz++;
   odtwarzacz.pause();
   if (zatrzymajGranie) zatrzymajGranie('przerwane');
-  tato.classList.remove('mowi');
+  tatoMowi(false);
 }
 const czekaj = ms => new Promise(r => setTimeout(r, ms));
 
@@ -549,7 +642,7 @@ const el = {
   dalej: document.getElementById('dalej'),
 };
 let sesjaGry = 0; // rośnie przy wyjściu z gry, stare sekwencje (karta, tunel) same się kończą
-let nr = 0, wstawione = 0, bledyTeraz = 0, zablokowane = false, powitanie = null;
+let nr = 0, wstawione = 0, bledyTeraz = 0, bledySlowa = 0, zablokowane = false, powitanie = null;
 
 const LOKOMOTYWA = `
 <svg class="lokomotywa" viewBox="0 0 300 300" aria-hidden="true">
@@ -592,7 +685,7 @@ function polecenie() {
 async function nowaRunda() {
   const moja = sesjaGry;
   const s = slowa[nr];
-  wstawione = 0; bledyTeraz = 0; zablokowane = false;
+  wstawione = 0; bledyTeraz = 0; bledySlowa = 0; zablokowane = false;
   narysujPostep();
   el.kartaTlo.classList.remove('widoczna');
   el.dalej.classList.remove('widoczny');
@@ -745,7 +838,7 @@ async function sprobujWstawic(w) {
   }
   // zły wagon: bez kary, tylko podpowiedź
   wroc(w);
-  bledyTeraz++;
+  bledyTeraz++; bledySlowa++;
   dopiszBlad(potrzebna);
   el.latka.classList.remove('mysli'); el.latka.offsetWidth; el.latka.classList.add('mysli');
   przerwij();
@@ -763,6 +856,7 @@ async function slowoGotowe() {
   const moja = sesjaGry;
   zablokowane = true;
   const s = slowa[nr];
+  zapiszWynik('p:' + s.syl.join(''), bledySlowa);
   el.pociag.querySelectorAll('.miejsce').forEach(m => m.classList.remove('nastepne'));
   el.zajezdnia.querySelectorAll('.wagon').forEach(w => { w.style.transition = 'opacity .4s'; w.style.opacity = '0'; });
 
@@ -796,7 +890,7 @@ async function slowoGotowe() {
   if (moja !== sesjaGry) return;
 
   // obrazek wyjeżdża z tunelu
-  el.kartaObrazek.textContent = s.obrazek;
+  el.kartaObrazek.innerHTML = obrazekHtml(s);
   el.kartaSlowo.innerHTML = s.syl.map(x => `<span class="syl">${x}</span>`).join('');
   el.kartaTlo.classList.add('widoczna');
   const karta = el.kartaTlo.querySelector('.karta');
@@ -839,25 +933,221 @@ async function koniecSesji() {
   await powiedz(`Brawo, ${GRACZE[gracz].wolacz}! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!`, { tempo: 0.9 });
 }
 
+// ---------- zabawy z wyborem: litery, sylaby, obrazki, karmienie Łatki ----------
+const losuj = (t, n) => tasuj([...t]).slice(0, n);
+function podobneSylaby(cel) { // jedna z tą samą spółgłoską, jedna z tą samą samogłoską, reszta dowolna
+  const inne = WSZYSTKIE_SYLABY.filter(x => x !== cel);
+  const a = losuj(inne.filter(x => x[0] === cel[0]), 1);
+  const b = losuj(inne.filter(x => x[1] === cel[1] && !a.includes(x)), 1);
+  const reszta = losuj(inne.filter(x => !a.includes(x) && !b.includes(x)), 2);
+  return [...a, ...b, ...reszta].slice(0, 2);
+}
+// typ: wygląd opcji; prompt: 'sluch' (Tato mówi, dziecko szuka napisu) albo 'slowo' (dziecko czyta, szuka obrazka)
+const TRYBY = {
+  litery: {
+    pula: () => SAMOGLOSKI, ile: 6, typ: 'tekst', prompt: 'sluch',
+    klucz: x => 'l:' + x, nazwa: x => x, opcje: cel => [cel, ...losuj(SAMOGLOSKI.filter(x => x !== cel), 2)],
+  },
+  sylaby: {
+    pula: () => WSZYSTKIE_SYLABY, ile: SLOW_W_SESJI, typ: 'tekst', prompt: 'sluch',
+    klucz: x => 's:' + x, nazwa: x => x, opcje: cel => [cel, ...podobneSylaby(cel)],
+  },
+  nakarm: {
+    pula: () => WSZYSTKIE_SYLABY, ile: SLOW_W_SESJI, typ: 'marchew', prompt: 'sluch',
+    klucz: x => 'n:' + x, nazwa: x => x, opcje: cel => [cel, ...podobneSylaby(cel)],
+  },
+  obrazki: {
+    pula: () => WSZYSTKIE_SLOWA, ile: SLOW_W_SESJI, typ: 'obraz', prompt: 'slowo',
+    klucz: x => 'o:' + x.syl.join(''), nazwa: x => x.syl.join(''),
+    opcje: cel => [cel, ...losuj(WSZYSTKIE_SLOWA.filter(x => x.obrazek !== cel.obrazek), 2)],
+  },
+};
+const zel = {
+  postep: document.getElementById('z-postep'),
+  gora: document.getElementById('z-gora'),
+  prompt: document.getElementById('z-prompt'),
+  opcje: document.getElementById('z-opcje'),
+  latka: document.getElementById('z-latka'),
+};
+let z = null; // stan bieżącej zabawy: { tryb, rundy, nr, cel, bledySlowa, zablokowane }
+
+function marchewkaNad(obraz) {
+  const r = obraz.getBoundingClientRect(), sr = obraz.parentElement.getBoundingClientRect();
+  marchewka(obraz.parentElement, (r.left - sr.left + r.width * .3) + 'px', (r.top - sr.top) + 'px');
+}
+zel.latka.addEventListener('animationend', e => {
+  if (e.animationName !== 'kolysanie') zel.latka.classList.remove('hop', 'mysli', 'skacze');
+});
+zel.latka.addEventListener('pointerdown', () => { animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka); });
+
+function startZabawy(id) {
+  sesjaGry++;
+  const t = TRYBY[id];
+  z = { id, tryb: t, rundy: wybierzSesje(t.pula(), t.klucz, t.ile, true), nr: 0, cel: null, bledySlowa: 0, zablokowane: true };
+  wybierzGlos();
+  przerwij();
+  powitanie = powiedz(`Cześć, ${GRACZE[gracz].wolacz}! Jedziemy!`, { tempo: 0.95 });
+  pokaz('zabawa');
+  nowaRundaZ();
+}
+
+function polecenieZ() {
+  const t = z.tryb;
+  return t.prompt === 'sluch' ? powiedz(['Szukamy:', t.nazwa(z.cel)]) : powiedz(t.nazwa(z.cel), { tempo: 0.8 });
+}
+
+async function nowaRundaZ() {
+  const moja = sesjaGry, t = z.tryb;
+  z.cel = z.rundy[z.nr]; z.bledySlowa = 0; z.zablokowane = false;
+  zel.postep.innerHTML = z.rundy.map((_, i) => `<span class="${i < z.nr ? 'zrobione' : i === z.nr ? 'teraz' : ''}"></span>`).join('');
+
+  if (t.prompt === 'sluch') {
+    zel.prompt.innerHTML = `<button class="duzy-przycisk" id="z-glos" aria-label="Posłuchaj"><svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg></button>`;
+    document.getElementById('z-glos').addEventListener('click', () => { przerwij(); polecenieZ(); });
+  } else {
+    zel.prompt.innerHTML = `<div class="prompt-slowo">${z.cel.syl.map((x, i) => `<span class="syl s${i % 3}">${x}</span>`).join('')}</div>`;
+    zel.prompt.firstChild.addEventListener('click', () => { przerwij(); polecenieZ(); });
+  }
+
+  const kolory = tasuj([...KOLORY]);
+  zel.opcje.innerHTML = '';
+  tasuj(t.opcje(z.cel)).forEach((o, i) => {
+    const k = document.createElement('div');
+    k.className = 'opcja ' + (t.typ === 'tekst' ? '' : t.typ);
+    if (t.typ === 'obraz') k.innerHTML = obrazekHtml(o);
+    else { k.textContent = o; if (t.typ === 'tekst') k.style.background = kolory[i]; }
+    k.dataset.nazwa = t.nazwa(o);
+    zel.opcje.appendChild(k);
+    podepnijOpcje(k, o);
+  });
+
+  obudzBezczynnoscZ();
+  await czekaj(700);
+  if (moja !== sesjaGry) return;
+  await powitanie;
+  if (moja !== sesjaGry) return;
+  powitanie = null;
+  przerwij();
+  if (t.prompt === 'sluch') await polecenieZ(); // przy obrazkach dziecko czyta samo; Tato mówi dopiero na prośbę
+}
+
+function dobraOpcja() { return [...zel.opcje.children].find(k => k.dataset.nazwa === z.tryb.nazwa(z.cel)); }
+function obudzBezczynnoscZ() {
+  clearTimeout(stoperBezczynnosci);
+  stoperBezczynnosci = setTimeout(() => {
+    if (z.zablokowane || !document.getElementById('zabawa').classList.contains('aktywny')) return;
+    animuj(zel.latka, 'hop');
+    const d = dobraOpcja(); if (d) animuj(d, 'podpowiedz');
+    obudzBezczynnoscZ();
+  }, 12000);
+}
+
+function podepnijOpcje(k, o) {
+  const karm = z.id === 'nakarm';
+  let sx, sy, aktywny = false, ruszyl = false;
+  const nadLatka = (x, y) => {
+    const r = zel.latka.getBoundingClientRect(), zap = window.innerHeight * .06;
+    return x > r.left - zap && x < r.right + zap && y > r.top - zap && y < r.bottom + zap;
+  };
+  k.addEventListener('pointerdown', e => {
+    if (z.zablokowane) return;
+    aktywny = true; ruszyl = false; sx = e.clientX; sy = e.clientY;
+    if (karm) k.setPointerCapture(e.pointerId);
+    k.classList.remove('podpowiedz');
+  });
+  k.addEventListener('pointermove', e => {
+    if (!aktywny || !karm) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!ruszyl && Math.hypot(dx, dy) > 10) { ruszyl = true; k.classList.add('ciagniety'); }
+    if (ruszyl) k.style.transform = `translate(${dx}px, ${dy}px) scale(1.08)`;
+  });
+  k.addEventListener('pointerup', e => {
+    if (!aktywny) return;
+    aktywny = false; k.classList.remove('ciagniety');
+    if (!karm) { sprawdzZ(o, k); return; }
+    if (!ruszyl) { k.style.transform = ''; przerwij(); powiedz(k.dataset.nazwa, { tempo: 0.75 }); return; } // dotknięcie = posłuchaj
+    if (nadLatka(e.clientX, e.clientY)) sprawdzZ(o, k, true);
+    else wroc(k);
+  });
+  k.addEventListener('pointercancel', () => { aktywny = false; k.classList.remove('ciagniety'); if (karm) wroc(k); });
+}
+
+async function sprawdzZ(o, karta, przeciagnieta = false) {
+  if (z.zablokowane) return;
+  const moja = sesjaGry, t = z.tryb;
+  obudzBezczynnoscZ();
+  przerwij();
+
+  if (t.nazwa(o) !== t.nazwa(z.cel)) { // zły wybór: bez kary, tylko podpowiedź
+    z.bledySlowa++;
+    if (przeciagnieta) wroc(karta);
+    animuj(karta, 'zla'); setTimeout(() => karta.classList.remove('zla'), 450);
+    animuj(zel.latka, 'mysli');
+    await powiedz(['To jest', t.nazwa(o)], { tempo: 0.8 });
+    if (moja !== sesjaGry) return;
+    if (z.bledySlowa >= 2) {
+      const d = dobraOpcja(); if (d) animuj(d, 'podpowiedz');
+      await powiedz(['Szukamy:', t.nazwa(z.cel)], { tempo: 0.8 });
+    } else {
+      await powiedz('Spróbuj jeszcze raz.');
+    }
+    return;
+  }
+
+  z.zablokowane = true;
+  zapiszWynik(t.klucz(z.cel), z.bledySlowa);
+  [...zel.opcje.children].forEach(x => { if (x !== karta) x.style.opacity = '.35'; });
+  karta.classList.add('dobra');
+  if (przeciagnieta) { // marchewka leci do Łatki
+    const kr = karta.getBoundingClientRect(), lr = zel.latka.getBoundingClientRect();
+    karta.style.transition = 'transform .35s ease-in, opacity .35s';
+    karta.style.transform = `translate(${lr.left + lr.width / 2 - kr.left - kr.width / 2}px, ${lr.top + lr.height / 2 - kr.top - kr.height / 2}px) scale(.2)`;
+    karta.style.opacity = '0';
+  }
+  animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka);
+
+  if (t.prompt === 'slowo') { // czytamy słowo sylaba po sylabie, potem całe
+    const spany = zel.prompt.querySelectorAll('.syl');
+    for (let i = 0; i < spany.length; i++) {
+      spany[i].classList.add('czytana');
+      await powiedz(z.cel.syl[i], { tempo: 0.7 });
+      if (moja !== sesjaGry) return;
+      spany[i].classList.remove('czytana');
+    }
+  }
+  await powiedz(t.nazwa(z.cel), { tempo: 0.8 });
+  if (moja !== sesjaGry) return;
+  const p = pochwaly();
+  await powiedz(p[Math.floor(Math.random() * p.length)], { tempo: 0.95 });
+  if (moja !== sesjaGry) return;
+  await czekaj(400);
+  if (moja !== sesjaGry) return;
+  z.nr++;
+  if (z.nr >= z.rundy.length) return koniecSesji();
+  nowaRundaZ();
+}
+
 // ---------- przyciski ----------
 document.querySelectorAll('[data-gracz]').forEach(b => b.addEventListener('click', () => {
   gracz = b.dataset.gracz;
   pokaz('poziomy');
 }));
 document.getElementById('do-startu').addEventListener('click', () => pokaz('start'));
-document.getElementById('do-domu').addEventListener('click', () => {
-  sesjaGry++; zablokowane = true;
+function doDomu() {
+  sesjaGry++; zablokowane = true; if (z) z.zablokowane = true;
   clearTimeout(stoperBezczynnosci);
   przerwij();
   el.kartaTlo.classList.remove('widoczna');
   odswiezStart();
   pokaz('start');
-});
-document.querySelectorAll('[data-poziom]').forEach(b => b.addEventListener('click', () => {
+}
+document.getElementById('do-domu').addEventListener('click', doDomu);
+document.getElementById('z-dom').addEventListener('click', doDomu);
+
+function startPociagu(poziom) {
   // iPad odblokowuje dźwięk dopiero po dotknięciu, więc pierwsze słowa padają tutaj
-  const pula = POZIOMY[+b.dataset.poziom];
-  const wybrane = tasuj(pula.map((_, i) => i)).slice(0, SLOW_W_SESJI).sort((x, y) => x - y);
-  slowa = wybrane.map(i => pula[i]);
+  sesjaGry++;
+  slowa = wybierzSesje(POZIOMY[poziom], x => 'p:' + x.syl.join(''));
   document.getElementById('gra').classList.toggle('trzy', slowa[0].syl.length === 3);
   wybierzGlos();
   przerwij();
@@ -865,9 +1155,14 @@ document.querySelectorAll('[data-poziom]').forEach(b => b.addEventListener('clic
   nr = 0;
   pokaz('gra');
   nowaRunda();
+}
+document.querySelectorAll('[data-zabawa]').forEach(b => b.addEventListener('click', () => {
+  const co = b.dataset.zabawa;
+  if (co.startsWith('pociag')) startPociagu(+co.slice(-1)); else startZabawy(co);
 }));
 document.getElementById('powtorz').addEventListener('click', () => { przerwij(); if (!zablokowane) polecenie(); });
 el.dalej.addEventListener('click', dalej);
+document.getElementById('z-powtorz').addEventListener('click', () => { przerwij(); if (z && !z.zablokowane) polecenieZ(); });
 document.getElementById('jeszcze').addEventListener('click', () => { przerwij(); odswiezStart(); pokaz('start'); });
 
 odswiezStart();
