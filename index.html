@@ -85,6 +85,30 @@
   .mini-pociag i { width: 5.2vh; height: 5vh; border-radius: 1vh; border: 0.5vh solid var(--kontur); }
   .dom { position: absolute; top: 3vh; left: 3vw; z-index: 2; }
 
+  /* ---------- memory ---------- */
+  .mem-rozmiary { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; }
+  .mem-rozmiary .rzad { display: flex; gap: 3vh; }
+  .mem-rozmiary .duzy-przycisk { width: 19vh; height: 19vh; border-radius: 4vh; font-size: 6.4vh; font-weight: 900; color: #fff;
+    text-shadow: 0 0.5vh 0 rgba(75,58,46,.45); }
+  .mem-rozmiary .duzy-przycisk::before { border-radius: 3vh; }
+  .mem-rozmiary .duzy-przycisk span { position: relative; z-index: 1; }
+  #mem-plansza { position: absolute; left: 50%; top: 14vh; transform: translateX(-50%); width: 80vh; height: 80vh; display: none; gap: 0.8vh; }
+  #memory.gra #mem-plansza { display: grid; }
+  #memory.gra .mem-rozmiary { display: none; }
+  #memory:not(.gra) .mem-gora { display: none; }
+  .mem-licznik { font-size: 5vh; font-weight: 900; color: var(--kontur); }
+  .mem-karta { position: relative; border-radius: 1.6vh; border: 0.5vh solid var(--kontur); background: #fff; overflow: hidden;
+    display: grid; place-items: center; font-weight: 900; color: var(--kontur); touch-action: manipulation; cursor: pointer;
+    box-shadow: 0 0.5vh 0 rgba(75,58,46,.25); transition: transform .15s; }
+  .mem-karta img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .mem-karta.rewers { background: var(--pomaranczowy); color: #fff; }
+  .mem-karta.rewers::before { content: ""; position: absolute; inset: 12%; border-radius: 1.2vh; border: 0.35vh dashed rgba(255,255,255,.75); }
+  .mem-karta.rewers > * { display: none; }
+  .mem-karta.dobra { background: #CFEFD6; border-color: #5BAA6E; }
+  .mem-karta.joker { background: transparent; border-color: transparent; box-shadow: none; cursor: default; }
+  .mem-karta.joker img { object-fit: contain; }
+  .mem-karta.zla { animation: trzesie .4s ease-in-out; }
+
   /* ---------- gra ---------- */
   #gra { overflow: hidden; --k: 1; }
   #gra.trzy { --k: .72; }
@@ -324,6 +348,7 @@
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i><i style="background:var(--fiolet)"></i></span>
       </button>
       <button class="duzy-przycisk" data-zabawa="obrazki" aria-label="Znajdź obrazek" style="background:var(--rozowy)"><span>🐱<small>KOT</small></span></button>
+      <button class="duzy-przycisk" data-zabawa="memory" aria-label="Memory" style="background:var(--niebieski)"><span>🃏</span></button>
     </div>
   </div>
 </section>
@@ -402,6 +427,30 @@
     <div id="z-prompt"></div>
   </div>
   <div class="opcje" id="z-opcje"></div>
+</section>
+
+<!-- MEMORY -->
+<section id="memory" class="ekran">
+  <div class="pasek">
+    <div class="lewa-grupa">
+      <button class="glosnik" id="mem-dom" aria-label="Wróć na ekran główny"><svg viewBox="0 0 10 10" style="width:50%;height:50%"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg></button>
+      <div class="tato"><img src="img/tato.svg" alt="Tato"></div>
+    </div>
+    <div class="mem-licznik mem-gora" id="mem-licznik"></div>
+    <button class="glosnik" id="mem-zmien" aria-label="Zmień rozmiar planszy"><svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="4" width="6" height="6" fill="#F2C230"/><rect x="14" y="4" width="6" height="6" fill="#F2C230"/><rect x="4" y="14" width="6" height="6" fill="#F2C230"/><rect x="14" y="14" width="6" height="6" fill="#F2C230"/></svg></button>
+  </div>
+  <div class="mem-rozmiary">
+    <div class="rzad">
+      <button class="duzy-przycisk" data-mem="5" style="background:var(--zielony)"><span>5×5</span></button>
+      <button class="duzy-przycisk" data-mem="6" style="background:var(--niebieski)"><span>6×6</span></button>
+      <button class="duzy-przycisk" data-mem="7" style="background:var(--fiolet)"><span>7×7</span></button>
+    </div>
+    <div class="rzad">
+      <button class="duzy-przycisk" data-mem="8" style="background:var(--pomaranczowy)"><span>8×8</span></button>
+      <button class="duzy-przycisk" data-mem="10" style="background:var(--rozowy)"><span>10×10</span></button>
+    </div>
+  </div>
+  <div id="mem-plansza"></div>
 </section>
 
 <!-- KONIEC -->
@@ -1127,6 +1176,85 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
   nowaRundaZ();
 }
 
+// ---------- memory: obrazek + słowo, plansza N×N (przy nieparzystym N pośrodku leży Łatka) ----------
+const mem = { n: 0, moje: 0, otwarte: [], zablokowane: true, pary: 0, znalezione: 0 };
+const memEl = { sekcja: document.getElementById('memory'), plansza: document.getElementById('mem-plansza'), licznik: document.getElementById('mem-licznik') };
+const KOLORY_TEKSTU = ['#D9642F', '#3F6FB8', '#7B4FA8', '#3E8E54'];
+function memTresc(k, rodzaj) { // rodzaj: 'obraz' | 'slowo'
+  const slowo = k.syl.join('');
+  if (rodzaj === 'obraz') return obrazekHtml(k);
+  return `<span class="mem-tekst" style="color:${KOLORY_TEKSTU[slowo.length % 4]}">${slowo}</span>`;
+}
+function startMemory() {
+  sesjaGry++; clearTimeout(stoperBezczynnosci); przerwij();
+  mem.moje = sesjaGry; mem.zablokowane = true;
+  memEl.sekcja.classList.remove('gra');
+  memEl.plansza.innerHTML = '';
+  pokaz('memory');
+}
+function memPlansza(n) {
+  wybierzGlos();
+  const wszystkie = tasuj([...WSZYSTKIE_SLOWA]);
+  const par = Math.floor(n * n / 2);
+  const karty = [];
+  for (let i = 0; i < par; i++) {
+    const k = wszystkie[i % wszystkie.length];
+    const dubel = i >= wszystkie.length; // przy 10×10 brakuje słów z obrazkami: reszta par to dwa napisy
+    karty.push({ id: i, k, rodzaj: dubel ? 'slowo' : 'obraz' }, { id: i, k, rodzaj: 'slowo' });
+  }
+  tasuj(karty);
+  if (n % 2) karty.splice((n * n - 1) / 2, 0, { joker: true });
+  Object.assign(mem, { n, otwarte: [], zablokowane: false, pary: par, znalezione: 0 });
+  memEl.sekcja.classList.add('gra');
+  memEl.plansza.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  memEl.plansza.style.gridTemplateRows = `repeat(${n}, 1fr)`;
+  memEl.plansza.innerHTML = '';
+  const bok = memEl.plansza.getBoundingClientRect().width / n;
+  karty.forEach(c => {
+    const d = document.createElement('div');
+    if (c.joker) { d.className = 'mem-karta joker'; d.innerHTML = '<img src="img/latka.svg" alt="">'; }
+    else {
+      d.className = 'mem-karta rewers';
+      d.innerHTML = memTresc(c.k, c.rodzaj);
+      const t = d.querySelector('.mem-tekst');
+      if (t) t.style.fontSize = Math.min(bok * .5, bok * 1.15 / c.k.syl.join('').length) + 'px';
+      if (!t) d.style.fontSize = bok * .6 + 'px';
+      d.dataset.id = c.k.syl.join(''); // pasują do siebie dowolne dwie karty z tym samym słowem
+      d.addEventListener('click', () => memKlik(d, c));
+    }
+    memEl.plansza.appendChild(d);
+  });
+  memLicznik();
+}
+const memLicznik = () => { memEl.licznik.textContent = `${mem.znalezione} / ${mem.pary}`; };
+async function memKlik(d, c) {
+  if (mem.moje !== sesjaGry || mem.zablokowane || !d.classList.contains('rewers') || mem.otwarte.includes(d)) return;
+  d.classList.remove('rewers');
+  mem.otwarte.push(d);
+  przerwij(); powiedz(c.k.syl.join(''), { tempo: 0.8 });
+  if (mem.otwarte.length < 2) return;
+  mem.zablokowane = true;
+  const [a, b] = mem.otwarte;
+  const moje = sesjaGry;
+  if (a.dataset.id === b.dataset.id) {
+    [a, b].forEach(x => x.classList.add('dobra'));
+    mem.otwarte = []; mem.znalezione++; memLicznik(); mem.zablokowane = false;
+    if (mem.znalezione === mem.pary) {
+      await czekaj(1200);
+      if (moje === sesjaGry) koniecSesji();
+    }
+    return;
+  }
+  [a, b].forEach(x => animuj(x, 'zla'));
+  await czekaj(1300);
+  if (moje !== sesjaGry) return;
+  [a, b].forEach(x => x.classList.add('rewers'));
+  mem.otwarte = []; mem.zablokowane = false;
+}
+document.querySelectorAll('[data-mem]').forEach(b => b.addEventListener('click', () => memPlansza(+b.dataset.mem)));
+document.getElementById('mem-zmien').addEventListener('click', startMemory);
+document.getElementById('mem-dom').addEventListener('click', doDomu);
+
 // ---------- przyciski ----------
 document.querySelectorAll('[data-gracz]').forEach(b => b.addEventListener('click', () => {
   gracz = b.dataset.gracz;
@@ -1158,7 +1286,7 @@ function startPociagu(poziom) {
 }
 document.querySelectorAll('[data-zabawa]').forEach(b => b.addEventListener('click', () => {
   const co = b.dataset.zabawa;
-  if (co.startsWith('pociag')) startPociagu(+co.slice(-1)); else startZabawy(co);
+  if (co.startsWith('pociag')) startPociagu(+co.slice(-1)); else if (co === 'memory') startMemory(); else startZabawy(co);
 }));
 document.getElementById('powtorz').addEventListener('click', () => { przerwij(); if (!zablokowane) polecenie(); });
 el.dalej.addEventListener('click', dalej);
