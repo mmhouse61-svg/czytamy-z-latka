@@ -1,5 +1,5 @@
 // Wygenerowane przez narzedzia/zbuduj_sw.py — nie edytuj ręcznie.
-const CACHE = 'latka-773415061c';
+const CACHE = 'latka-109ce66078';
 const PLIKI = [
   "./",
   "glos/brawo-1-marcelina.mp3",

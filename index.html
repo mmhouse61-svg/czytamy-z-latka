@@ -85,12 +85,29 @@
   .mini-pociag i { width: 4.4vh; height: 4.4vh; border-radius: 1vh; border: 0.5vh solid var(--kontur); }
   .dom { position: absolute; top: 3vh; left: 3vw; z-index: 2; }
 
+  /* ---------- opisy zabaw dla rodzica ---------- */
+  .zab { position: relative; }
+  .info-przycisk { position: absolute; top: -1vh; right: -1vh; z-index: 3; width: 5.6vh; height: 5.6vh; border-radius: 50%;
+    border: 0.5vh solid var(--kontur); background: #fff; color: var(--kontur); font: 900 3.4vh/1 Georgia, serif; font-style: italic;
+    display: grid; place-items: center; padding: 0; box-shadow: 0 0.5vh 0 rgba(75,58,46,.25); cursor: pointer; }
+  #info-tlo { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(75,58,46,.45); }
+  #info-tlo.widoczna { display: flex; }
+  #info-karta { width: min(70vh, 86vw); max-height: 86vh; overflow: auto; background: #fff; border: 0.8vh solid var(--kontur); border-radius: 3.5vh;
+    padding: 3.5vh 4vh 3vh; box-shadow: 0 1.4vh 0 rgba(75,58,46,.25); color: var(--kontur); }
+  #info-karta h2 { margin: 0 0 1.6vh; font-size: 4.2vh; }
+  #info-karta p { margin: 0 0 1.4vh; font-size: 2.9vh; line-height: 1.35; font-weight: 600; }
+  #info-karta .dla { font-size: 2.2vh; opacity: .7; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .6vh; }
+  #info-zamknij { display: block; margin: 1.6vh auto 0; padding: 1.4vh 5vh; border-radius: 3vh; border: 0.5vh solid var(--kontur);
+    background: var(--zolty); color: var(--kontur); font: 900 3vh/1 inherit; cursor: pointer; }
+
   /* ---------- memory ---------- */
   .mem-rozmiary { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; }
   .mem-rozmiary .rzad { display: flex; gap: 3vh; }
   .mem-rozmiary .duzy-przycisk { width: 19vh; height: 19vh; border-radius: 4vh; font-size: 6.4vh; font-weight: 900; color: #fff;
     text-shadow: 0 0.5vh 0 rgba(75,58,46,.45); }
   .mem-rozmiary .duzy-przycisk::before { border-radius: 3vh; }
+  .mem-rozmiary .mem-tryb { width: 29vh; height: 15vh; font-size: 5.6vh; opacity: .55; }
+  .mem-rozmiary .mem-tryb.wybrany { opacity: 1; outline: 1vh solid var(--zolty); outline-offset: 0.6vh; }
   .mem-rozmiary .duzy-przycisk span { position: relative; z-index: 1; }
   #mem-plansza { position: absolute; left: 50%; top: 14vh; transform: translateX(-50%); width: 80vh; height: 80vh; display: none; gap: 0.8vh; }
   #memory.gra #mem-plansza { display: grid; }
@@ -441,6 +458,10 @@
   </div>
   <div class="mem-rozmiary">
     <div class="rzad">
+      <button class="duzy-przycisk mem-tryb wybrany" data-tryb="tekst" aria-label="Obrazek i tekst" style="background:var(--zielony)"><span>🖼️ = Aa</span></button>
+      <button class="duzy-przycisk mem-tryb" data-tryb="obraz" aria-label="Obrazek i obrazek" style="background:var(--rozowy)"><span>🖼️ = 🖼️</span></button>
+    </div>
+    <div class="rzad">
       <button class="duzy-przycisk" data-mem="5" style="background:var(--zielony)"><span>5×5</span></button>
       <button class="duzy-przycisk" data-mem="6" style="background:var(--niebieski)"><span>6×6</span></button>
       <button class="duzy-przycisk" data-mem="7" style="background:var(--fiolet)"><span>7×7</span></button>
@@ -452,6 +473,16 @@
   </div>
   <div id="mem-plansza"></div>
 </section>
+
+<!-- OPIS ZABAWY DLA RODZICA -->
+<div id="info-tlo" role="dialog" aria-modal="true">
+  <div id="info-karta">
+    <div class="dla">Dla rodzica</div>
+    <h2 id="info-tytul"></h2>
+    <div id="info-tresc"></div>
+    <button id="info-zamknij">OK</button>
+  </div>
+</div>
 
 <!-- KONIEC -->
 <section id="koniec" class="ekran">
@@ -528,7 +559,8 @@ function obrazekHtml(s) {
   const k = bezOgonkow(s.syl.join(''));
   return OBRAZKI_JEST.has(k) ? `<img src="obrazki/${k}.webp" alt="">` : s.obrazek;
 }
-const SAMOGLOSKI = ['A', 'O', 'U', 'E', 'I', 'Y'];
+const CZAS_PODPOWIEDZI = 30000; // po tylu ms bez ruchu Łatka podskakuje i pokazuje dobrą odpowiedź
+const SAMOGLOSKI =['A', 'O', 'U', 'E', 'I', 'Y'];
 const SLOW_W_SESJI = 10; // krótka sesja: 10 losowych słów z poziomu, w kolejności od łatwych
 const WSZYSTKIE_SYLABY = [...new Set(POZIOMY.flat().flatMap(x => x.syl))];
 const WSZYSTKIE_SLOWA = POZIOMY.flat();
@@ -807,7 +839,7 @@ function obudzBezczynnosc() {
     const dobry = [...el.zajezdnia.querySelectorAll('.wagon')].find(x => x.dataset.syl === slowa[nr].syl[wstawione]);
     if (dobry) animuj(dobry, 'podpowiedz');
     obudzBezczynnosc();
-  }, 12000);
+  }, CZAS_PODPOWIEDZI);
 }
 document.getElementById('gra').addEventListener('pointerdown', obudzBezczynnosc);
 
@@ -1088,7 +1120,7 @@ function obudzBezczynnoscZ() {
     animuj(zel.latka, 'hop');
     const d = dobraOpcja(); if (d) animuj(d, 'podpowiedz');
     obudzBezczynnoscZ();
-  }, 12000);
+  }, CZAS_PODPOWIEDZI);
 }
 
 function podepnijOpcje(k, o) {
@@ -1177,7 +1209,7 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
 }
 
 // ---------- memory: obrazek + słowo, plansza N×N (przy nieparzystym N pośrodku leży Łatka) ----------
-const mem = { n: 0, moje: 0, otwarte: [], zablokowane: true, pary: 0, znalezione: 0 };
+const mem = { tryb: 'tekst', n: 0, moje: 0, otwarte: [], zablokowane: true, pary: 0, znalezione: 0 };
 const memEl = { sekcja: document.getElementById('memory'), plansza: document.getElementById('mem-plansza'), licznik: document.getElementById('mem-licznik') };
 const KOLORY_TEKSTU = ['#D9642F', '#3F6FB8', '#7B4FA8', '#3E8E54'];
 function memTresc(k, rodzaj) { // rodzaj: 'obraz' | 'slowo'
@@ -1200,7 +1232,8 @@ function memPlansza(n) {
   for (let i = 0; i < par; i++) {
     const k = wszystkie[i % wszystkie.length];
     const dubel = i >= wszystkie.length; // przy 10×10 brakuje słów z obrazkami: reszta par to dwa napisy
-    karty.push({ id: i, k, rodzaj: dubel ? 'slowo' : 'obraz' }, { id: i, k, rodzaj: 'slowo' });
+    const obrazObraz = mem.tryb === 'obraz'; // druga wersja: dwa obrazki zamiast obrazka i napisu
+    karty.push({ id: i, k, rodzaj: dubel && !obrazObraz ? 'slowo' : 'obraz' }, { id: i, k, rodzaj: obrazObraz ? 'obraz' : 'slowo' });
   }
   tasuj(karty);
   if (n % 2) karty.splice((n * n - 1) / 2, 0, { joker: true });
@@ -1251,6 +1284,10 @@ async function memKlik(d, c) {
   [a, b].forEach(x => x.classList.add('rewers'));
   mem.otwarte = []; mem.zablokowane = false;
 }
+document.querySelectorAll('[data-tryb]').forEach(b => b.addEventListener('click', () => {
+  mem.tryb = b.dataset.tryb;
+  document.querySelectorAll('[data-tryb]').forEach(x => x.classList.toggle('wybrany', x === b));
+}));
 document.querySelectorAll('[data-mem]').forEach(b => b.addEventListener('click', () => memPlansza(+b.dataset.mem)));
 document.getElementById('mem-zmien').addEventListener('click', startMemory);
 document.getElementById('mem-dom').addEventListener('click', doDomu);
@@ -1284,6 +1321,34 @@ function startPociagu(poziom) {
   pokaz('gra');
   nowaRunda();
 }
+// ---------- opisy zabaw dla rodzica (mały przycisk „i" przy każdej zabawie) ----------
+const WSPOLNE = 'Sesja to ok. 10 rund, 5–10 minut. Na końcu dziecko dostaje naklejkę. Aplikacja pamięta, co sprawia trudność, i częściej to powtarza. Nie poprawiaj dziecka: pomyłka jest w porządku, Łatka po prostu prosi o ponowną próbę. Jeśli dziecko długo nic nie robi (30 s), Łatka podskakuje i pokazuje dobrą odpowiedź.';
+const OPISY = {
+  litery: ['Litery', 'Tato mówi samogłoskę (A, O, U, E, I, Y), a dziecko dotyka jej wśród trzech liter. To najłatwiejsza zabawa: uczy rozpoznawać litery i łączyć je z dźwiękiem. Dobry początek dla najmłodszych.'],
+  sylaby: ['Znajdź sylabę', 'Tato mówi sylabę (np. MA), a dziecko dotyka jej napisu wśród trzech kart. Karty są podobne (ta sama spółgłoska albo samogłoska), więc dziecko musi naprawdę przeczytać, nie zgadywać. Przycisk z głośnikiem powtarza polecenie.'],
+  nakarm: ['Nakarm Łatkę', 'Łatka jest głodna. Tato mówi sylabę, a dziecko przeciąga palcem marchewkę z właściwą sylabą do Łatki. To ćwiczy tę samą umiejętność co „Znajdź sylabę”, ale ruchem, więc dobrze działa, gdy dziecko się wierci.'],
+  pociag0: ['Pociąg: dwie sylaby', 'Tato mówi słowo (np. MA-MA), a dziecko układa wagony z sylabami na torach we właściwej kolejności. Jeden wagon jest dodatkowy i nie pasuje. Po ułożeniu pociąg wjeżdża do tunelu i wyjeżdża z obrazkiem, a dziecko czyta słowo sylaba po sylabie.'],
+  pociag1: ['Pociąg: trzy sylaby', 'To samo co pociąg z dwiema sylabami, ale słowa mają trzy sylaby (np. BA-NA-NY), więc pociąg jest dłuższy. Zacznij od wersji z dwiema sylabami, a tę włącz, gdy dziecko układa je pewnie.'],
+  obrazki: ['Znajdź obrazek', 'Na ekranie jest napisane słowo, a dziecko czyta je samo i dotyka właściwego obrazka z trzech. Tato nie mówi, dopóki dziecko nie dotknie napisu albo głośnika. To prawdziwe czytanie ze zrozumieniem, więc dobra zabawa na sprawdzenie postępów.'],
+  memory: ['Memory', 'Dwie wersje do wyboru na górze: „obrazek = tekst” (pary to obrazek i jego słowo, więc dziecko czyta) oraz „obrazek = obrazek” (dwa takie same obrazki, klasyczne memory bez czytania, łatwiejsze na rozgrzewkę). Dziecko odkrywa dwie karty, Tato mówi słowo na głos, a pasujące zostają na zielono. Plansze: 5×5, 6×6, 7×7, 8×8 i 10×10. Przy nieparzystym rozmiarze pośrodku leży Łatka. Przy 10×10 jest 50 par, a obrazków 40, więc część par się powtarza (pasują do siebie dowolne dwie karty z tym samym słowem). Zacznij od 5×5. Ta zabawa nie ma podpowiedzi.'],
+};
+function pokazOpis(id) {
+  const [tytul, tresc] = OPISY[id];
+  document.getElementById('info-tytul').textContent = tytul;
+  document.getElementById('info-tresc').innerHTML = `<p>${tresc}</p>` + (id === 'memory' ? '' : `<p>${WSPOLNE}</p>`);
+  document.getElementById('info-tlo').classList.add('widoczna');
+}
+document.querySelectorAll('[data-zabawa]').forEach(b => {
+  const w = document.createElement('div'); w.className = 'zab';
+  b.replaceWith(w); w.appendChild(b);
+  const i = document.createElement('button');
+  i.className = 'info-przycisk'; i.textContent = 'i'; i.setAttribute('aria-label', 'Opis zabawy dla rodzica');
+  i.addEventListener('click', e => { e.stopPropagation(); pokazOpis(b.dataset.zabawa); });
+  w.appendChild(i);
+});
+document.getElementById('info-zamknij').addEventListener('click', () => document.getElementById('info-tlo').classList.remove('widoczna'));
+document.getElementById('info-tlo').addEventListener('click', e => { if (e.target.id === 'info-tlo') e.currentTarget.classList.remove('widoczna'); });
+
 document.querySelectorAll('[data-zabawa]').forEach(b => b.addEventListener('click', () => {
   const co = b.dataset.zabawa;
   if (co.startsWith('pociag')) startPociagu(+co.slice(-1)); else if (co === 'memory') startMemory(); else startZabawy(co);
