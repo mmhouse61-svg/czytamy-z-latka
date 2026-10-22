@@ -315,8 +315,16 @@
   .opcja::before { content: ""; position: absolute; inset: 1.2vh; border-radius: 2vh; border: 0.45vh dashed rgba(255,255,255,.7); pointer-events: none; }
   .opcja.obraz { background: #fff; color: var(--kontur); text-shadow: none; font-size: 12vh; }
   .opcja.obraz::before { border-color: #D9C9B4; }
-  .opcja.marchew { background: var(--pomaranczowy); border-radius: 4vh 4vh 9vh 9vh; }
-  .opcja.marchew::after { content: "🌿"; position: absolute; top: -5.4vh; left: 50%; transform: translateX(-50%); font-size: 6vh; text-shadow: none; }
+  .opcja.ziemniak { background-color: #C99A5B; border-radius: 58% 42% 55% 45% / 50% 58% 42% 50%; border-color: #7A5530;
+    background-image: radial-gradient(circle at 22% 30%, #8B6236 0 1.1vh, transparent 1.2vh), radial-gradient(circle at 78% 24%, #8B6236 0 .8vh, transparent .9vh), radial-gradient(circle at 70% 76%, #8B6236 0 1vh, transparent 1.1vh), radial-gradient(circle at 28% 80%, #8B6236 0 .7vh, transparent .8vh); }
+  .opcja.ziemniak::before { display: none; }
+  .opcja.ziemniak:nth-child(2) { border-radius: 44% 56% 40% 60% / 58% 42% 58% 42%; }
+  .opcja.ziemniak:nth-child(3) { border-radius: 52% 48% 62% 38% / 44% 56% 44% 56%; }
+  .opcja.ziemniak:nth-child(4) { border-radius: 40% 60% 48% 52% / 55% 45% 60% 40%; }
+  .skrzynia { position: relative; align-self: flex-end; width: 24vh; height: 15vh; margin-bottom: 2vh; border: .7vh solid var(--kontur); border-radius: 1.2vh; box-shadow: 0 1vh 0 rgba(75,58,46,.25);
+    background: repeating-linear-gradient(180deg, #C58B4B 0 4vh, #9C6A32 4vh 4.7vh); }
+  .skrzynia[hidden] { display: none; }
+  .skrzynia .w { position: absolute; left: 0; right: 0; bottom: 100%; margin-bottom: -2vh; display: flex; flex-wrap: wrap-reverse; justify-content: center; font-size: 4.6vh; line-height: 1; pointer-events: none; }
   .opcja.wraca { transition: transform .35s cubic-bezier(.3,1.6,.6,1); }
   .opcja:active { transform: scale(.95); }
   .opcja.ciagniety { z-index: 50; box-shadow: 0 3vh 2vh rgba(75,58,46,.3); transition: none; }
@@ -395,7 +403,7 @@
     <div class="zabawy">
       <button class="duzy-przycisk" data-zabawa="litery" data-kat="latka" aria-label="Litery: samogłoski" style="background:var(--niebieski)"><span>A O</span></button>
       <button class="duzy-przycisk" data-zabawa="sylaby" data-kat="latka" aria-label="Znajdź sylabę" style="background:var(--fiolet)"><span>MA</span></button>
-      <button class="duzy-przycisk" data-zabawa="nakarm" data-kat="tata" aria-label="Nakarm Łatkę" style="background:var(--pomaranczowy)"><span>🥕</span></button>
+      <button class="duzy-przycisk" data-zabawa="nakarm" data-kat="tata" aria-label="Nakarm Łatkę" style="background:var(--pomaranczowy)"><span>🥔</span></button>
       <button class="duzy-przycisk" data-zabawa="pociag0" data-kat="latka" aria-label="Pociąg: dwie sylaby" style="background:var(--zielony)">
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i></span>
       </button>
@@ -483,6 +491,7 @@
   </div>
   <div class="gora" id="z-gora">
     <img class="latka-z" id="z-latka" src="img/latka.svg" alt="Łatka">
+    <div class="skrzynia" id="z-skrzynia" hidden><div class="w"></div></div>
     <div id="z-prompt"></div>
   </div>
   <div class="opcje" id="z-opcje"></div>
@@ -1089,7 +1098,7 @@ const TRYBY = {
     klucz: x => 's:' + x, nazwa: x => x, opcje: cel => [cel, ...podobneSylaby(cel)],
   },
   nakarm: {
-    pula: () => WSZYSTKIE_SYLABY, ile: SLOW_W_SESJI, typ: 'marchew', prompt: 'sluch',
+    pula: () => WSZYSTKIE_SYLABY, ile: SLOW_W_SESJI, typ: 'ziemniak', prompt: 'sluch',
     klucz: x => 'n:' + x, nazwa: x => x, opcje: cel => [cel, ...podobneSylaby(cel)],
   },
   obrazki: {
@@ -1136,6 +1145,7 @@ const zel = {
   prompt: document.getElementById('z-prompt'),
   opcje: document.getElementById('z-opcje'),
   latka: document.getElementById('z-latka'),
+  skrzynia: document.getElementById('z-skrzynia'),
 };
 let z = null; // stan bieżącej zabawy: { tryb, rundy, nr, cel, bledySlowa, zablokowane }
 
@@ -1157,6 +1167,8 @@ function startZabawy(id) {
   document.querySelector('#zabawa .tato img').src = t.liczenie ? 'img/ziemek.svg' : 'img/tato.svg';
   zel.latka.src = t.host || 'img/latka.svg';
   zel.latka.alt = t.host ? 'Ziemek' : 'Łatka';
+  zel.skrzynia.hidden = t.typ !== 'ziemniak';
+  zel.skrzynia.firstChild.textContent = '';
   wybierzGlos();
   przerwij();
   powitanie = powiedz(`Cześć, ${GRACZE[gracz].wolacz}! Jedziemy!`, { tempo: 0.95 });
@@ -1224,8 +1236,11 @@ function podepnijOpcje(k, o) {
   const karm = z.id === 'nakarm';
   let sx, sy, aktywny = false, ruszyl = false;
   const nadLatka = (x, y) => {
-    const r = zel.latka.getBoundingClientRect(), zap = window.innerHeight * .06;
-    return x > r.left - zap && x < r.right + zap && y > r.top - zap && y < r.bottom + zap;
+    const zap = window.innerHeight * .06;
+    return [zel.latka, zel.skrzynia].some(el => {
+      const r = el.getBoundingClientRect();
+      return r.width && x > r.left - zap && x < r.right + zap && y > r.top - zap && y < r.bottom + zap;
+    });
   };
   k.addEventListener('pointerdown', e => {
     if (z.zablokowane) return;
@@ -1276,13 +1291,23 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
   zapiszWynik(t.klucz(z.cel), z.bledySlowa);
   [...zel.opcje.children].forEach(x => { if (x !== karta) x.style.opacity = '.35'; });
   karta.classList.add('dobra');
-  if (przeciagnieta) { // marchewka leci do Łatki
-    const kr = karta.getBoundingClientRect(), lr = zel.latka.getBoundingClientRect();
-    karta.style.transition = 'transform .35s ease-in, opacity .35s';
-    karta.style.transform = `translate(${lr.left + lr.width / 2 - kr.left - kr.width / 2}px, ${lr.top + lr.height / 2 - kr.top - kr.height / 2}px) scale(.2)`;
+  if (t.typ === 'ziemniak') { // ziemniak wpada do skrzyni obok Łatki
+    const kr = karta.getBoundingClientRect(), sk = zel.skrzynia.getBoundingClientRect();
+    karta.style.zIndex = 50;
+    karta.style.transition = 'transform .5s ease-in, opacity .5s';
+    karta.style.transform = `translate(${sk.left + sk.width / 2 - kr.left - kr.width / 2}px, ${sk.top + sk.height * .3 - kr.top - kr.height / 2}px) scale(.25)`;
     karta.style.opacity = '0';
+    setTimeout(() => { if (sesjaGry === moja && zel.skrzynia.firstChild.children.length < 10) zel.skrzynia.firstChild.append(Object.assign(document.createElement('span'), { textContent: '🥔' })); }, 450);
+    animuj(zel.latka, 'skacze');
+  } else {
+    if (przeciagnieta) { // karta leci do Łatki
+      const kr = karta.getBoundingClientRect(), lr = zel.latka.getBoundingClientRect();
+      karta.style.transition = 'transform .35s ease-in, opacity .35s';
+      karta.style.transform = `translate(${lr.left + lr.width / 2 - kr.left - kr.width / 2}px, ${lr.top + lr.height / 2 - kr.top - kr.height / 2}px) scale(.2)`;
+      karta.style.opacity = '0';
+    }
+    animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka, t.liczenie);
   }
-  animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka, t.liczenie);
 
   if (t.prompt === 'slowo') { // czytamy słowo sylaba po sylabie, potem całe
     const spany = zel.prompt.querySelectorAll('.syl');
@@ -1436,7 +1461,7 @@ const WSPOLNE = 'Sesja to ok. 10 rund, 5–10 minut. Na końcu dziecko dostaje n
 const OPISY = {
   litery: ['Litery', 'Tato mówi samogłoskę (A, O, U, E, I, Y), a dziecko dotyka jej wśród trzech liter. To najłatwiejsza zabawa: uczy rozpoznawać litery i łączyć je z dźwiękiem. Dobry początek dla najmłodszych.'],
   sylaby: ['Znajdź sylabę', 'Tato mówi sylabę (np. MA), a dziecko dotyka jej napisu wśród trzech kart. Karty są podobne (ta sama spółgłoska albo samogłoska), więc dziecko musi naprawdę przeczytać, nie zgadywać. Przycisk z głośnikiem powtarza polecenie.'],
-  nakarm: ['Nakarm Łatkę', 'Łatka jest głodna. Tato mówi sylabę, a dziecko przeciąga palcem marchewkę z właściwą sylabą do Łatki. To ćwiczy tę samą umiejętność co „Znajdź sylabę”, ale ruchem, więc dobrze działa, gdy dziecko się wierci.'],
+  nakarm: ['Nakarm Łatkę', 'Łatka zbiera ziemniaki. Tato mówi sylabę, a dziecko dotyka albo przeciąga ziemniak z właściwą sylabą. Ziemniak wpada do skrzyni obok Łatki. To ćwiczy tę samą umiejętność co „Znajdź sylabę”, ale ruchem, więc dobrze działa, gdy dziecko się wierci.'],
   pociag0: ['Pociąg: dwie sylaby', 'Tato mówi słowo (np. MA-MA), a dziecko układa wagony z sylabami na torach we właściwej kolejności. Jeden wagon jest dodatkowy i nie pasuje. Po ułożeniu pociąg wjeżdża do tunelu i wyjeżdża z obrazkiem, a dziecko czyta słowo sylaba po sylabie.'],
   pociag1: ['Pociąg: trzy sylaby', 'To samo co pociąg z dwiema sylabami, ale słowa mają trzy sylaby (np. BA-NA-NY), więc pociąg jest dłuższy. Zacznij od wersji z dwiema sylabami, a tę włącz, gdy dziecko układa je pewnie.'],
   obrazki: ['Znajdź obrazek', 'Na ekranie jest napisane słowo, a dziecko czyta je samo i dotyka właściwego obrazka z trzech. Tato nie mówi, dopóki dziecko nie dotknie napisu albo głośnika. To prawdziwe czytanie ze zrozumieniem, więc dobra zabawa na sprawdzenie postępów.'],
