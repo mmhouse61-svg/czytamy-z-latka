@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <!-- ZIEMEK · wzorzec front · wycinanka z filcu · kontur #5B3E28 -->
+  <defs>
+    <filter id="ziemek-felt" x="-15%" y="-15%" width="130%" height="135%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3" result="edgeNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="edgeNoise" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="fuzzy"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.75 1.1" numOctaves="4" seed="7" result="fibre"/>
+      <feDiffuseLighting in="fibre" surfaceScale="1.6" lighting-color="#FFFFFF" result="light">
+        <feDistantLight azimuth="225" elevation="58"/>
+      </feDiffuseLighting>
+      <feComponentTransfer in="light" result="lightSoft">
+        <feFuncR type="linear" slope="0.42" intercept="0.6"/>
+        <feFuncG type="linear" slope="0.42" intercept="0.6"/>
+        <feFuncB type="linear" slope="0.42" intercept="0.6"/>
+      </feComponentTransfer>
+      <feBlend in="fuzzy" in2="lightSoft" mode="multiply" result="textured"/>
+      <feComposite in="textured" in2="fuzzy" operator="in" result="felt"/>
+      <feGaussianBlur in="fuzzy" stdDeviation="2.5" result="blur"/>
+      <feOffset in="blur" dx="2" dy="4" result="offBlur"/>
+      <feFlood flood-color="#3A2414" flood-opacity="0.35"/>
+      <feComposite in2="offBlur" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="felt"/></feMerge>
+    </filter>
+  </defs>
+  <g id="ziemek" stroke="#5B3E28" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse id="ziemek-shadow" cx="200" cy="490" rx="118" ry="12" fill="#000" fill-opacity=".12" stroke="none"/>
+
+    <g id="ziemek-leg-l" filter="url(#ziemek-felt)">
+      <rect x="160" y="395" width="20" height="62" rx="9" fill="#D7B56A"/>
+      <path d="M128 484 C126 460 146 448 168 448 C192 448 206 462 206 484 Z" fill="#A89BD8"/>
+      <ellipse cx="150" cy="474" rx="15" ry="9" fill="#FFFDF5"/>
+      <path d="M176 456 C190 458 198 466 199 478" fill="none" stroke="#FFFDF5" stroke-width="2" stroke-dasharray="4 4"/>
+    </g>
+    <g id="ziemek-leg-r" filter="url(#ziemek-felt)">
+      <rect x="220" y="395" width="20" height="62" rx="9" fill="#D7B56A"/>
+      <path d="M272 484 C274 460 254 448 232 448 C208 448 194 462 194 484 Z" fill="#A89BD8"/>
+      <ellipse cx="250" cy="474" rx="15" ry="9" fill="#FFFDF5"/>
+      <path d="M224 456 C210 458 202 466 201 478" fill="none" stroke="#FFFDF5" stroke-width="2" stroke-dasharray="4 4"/>
+    </g>
+
+    <g id="ziemek-arm-l" filter="url(#ziemek-felt)">
+      <path d="M98 262 C76 282 62 316 58 346 C57 356 72 360 76 350 C82 322 92 298 108 280 Z" fill="#D7B56A"/>
+      <circle cx="64" cy="356" r="13" fill="#D7B56A"/>
+    </g>
+    <g id="ziemek-arm-r" filter="url(#ziemek-felt)">
+      <path d="M302 262 C324 282 338 316 342 346 C343 356 328 360 324 350 C318 322 308 298 292 280 Z" fill="#D7B56A"/>
+      <circle cx="336" cy="356" r="13" fill="#D7B56A"/>
+    </g>
+
+    <g id="ziemek-body" filter="url(#ziemek-felt)">
+      <path d="M200 100 C280 100 322 190 322 280 C322 360 270 418 200 418 C130 418 78 360 78 280 C78 190 120 100 200 100 Z" fill="#D7B56A"/>
+      <g id="ziemek-spots" fill="#B89655" stroke="none">
+        <ellipse cx="112" cy="232" rx="6" ry="9"/>
+        <ellipse cx="122" cy="306" rx="7" ry="10"/>
+        <ellipse cx="142" cy="372" rx="6" ry="8"/>
+        <ellipse cx="216" cy="384" rx="6" ry="8"/>
+        <ellipse cx="268" cy="350" rx="7" ry="10"/>
+        <ellipse cx="292" cy="290" rx="6" ry="9"/>
+        <ellipse cx="282" cy="226" rx="5" ry="8"/>
+        <ellipse cx="176" cy="338" rx="5" ry="7"/>
+      </g>
+      <path class="stitch" d="M200 100 C280 100 322 190 322 280 C322 360 270 418 200 418 C130 418 78 360 78 280 C78 190 120 100 200 100 Z" transform="translate(16 20.7) scale(.92)" fill="none" stroke="#FFF3D6" stroke-width="2.2" stroke-dasharray="6 6"/>
+    </g>
+
+    <g id="ziemek-face">
+      <g id="ziemek-brows" fill="none" stroke-width="5" filter="url(#ziemek-felt)">
+        <path d="M146 178 Q164 166 182 175"/>
+        <path d="M254 178 Q236 166 218 175"/>
+      </g>
+      <g id="ziemek-eyes" filter="url(#ziemek-felt)">
+        <ellipse cx="165" cy="214" rx="26" ry="32" fill="#FFFFFF"/>
+        <ellipse cx="235" cy="214" rx="26" ry="32" fill="#FFFFFF"/>
+        <ellipse cx="172" cy="218" rx="10" ry="14" fill="#1E1410" stroke="none"/>
+        <ellipse cx="228" cy="218" rx="10" ry="14" fill="#1E1410" stroke="none"/>
+      </g>
+      <g id="ziemek-eye-shine" fill="#FFFFFF" stroke="none">
+        <circle cx="168" cy="211" r="3.5"/>
+        <circle cx="224" cy="211" r="3.5"/>
+      </g>
+      <circle id="ziemek-nose" cx="200" cy="248" r="11" fill="#D7B56A" filter="url(#ziemek-felt)"/>
+      <g id="ziemek-mouth" filter="url(#ziemek-felt)">
+        <path d="M160 268 C178 262 222 262 240 268 C236 304 164 304 160 268 Z" fill="#7A2A22"/>
+        <path d="M176 290 C188 280 212 280 224 290 C212 300 188 300 176 290 Z" fill="#E8737A" stroke="none"/>
+      </g>
+    </g>
+
+    <g id="ziemek-hat" filter="url(#ziemek-felt)">
+      <path d="M106 158 C106 92 150 60 200 60 C250 60 294 92 294 158 Z" fill="#FFC82E"/>
+      <g fill="none" stroke-width="2.5" stroke-opacity=".45">
+        <path d="M200 62 L200 156"/>
+        <path d="M168 68 C156 96 152 126 154 156"/>
+        <path d="M232 68 C244 96 248 126 246 156"/>
+      </g>
+      <path class="stitch" d="M118 150 C118 100 156 72 200 72 C244 72 282 100 282 150" fill="none" stroke="#FFF3D6" stroke-width="2" stroke-dasharray="5 5"/>
+      <path d="M136 132 L136 102 L156 132 L156 102" fill="none" stroke="#A0702A" stroke-width="6"/>
+      <rect x="80" y="150" width="240" height="22" rx="11" fill="#FFC82E"/>
+      <path class="stitch" d="M92 161 L308 161" fill="none" stroke="#FFF3D6" stroke-width="2" stroke-dasharray="5 5"/>
+    </g>
+  </g>
+</svg>

@@ -6,11 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Czytamy z Łatką">
+<meta name="apple-mobile-web-app-title" content="Nauka z Łatką i Ziemkiem">
 <meta name="theme-color" content="#F2E8D9">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="img/ikona-180.png">
-<title>Czytamy z Łatką</title>
+<title>Nauka z Łatką i Ziemkiem</title>
 <style>
   :root {
     --tlo: #F2E8D9;
@@ -80,6 +80,32 @@
   .zabawy .duzy-przycisk > span { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
   .zabawy small { font-size: 5.4vh; letter-spacing: .04em; }
   .mala { height: 46vh; }
+  /* wybór kategorii: Łatka (czytanie), Ziemek (liczenie), Tata (zabawa) */
+  #poziomy .zabawy, #poziomy .mala { display: none; }
+  #poziomy[data-kat] .zabawy { display: grid; grid-template-columns: repeat(var(--kol, 3), 20vh); }
+  #poziomy[data-kat] .mala { display: block; }
+  #poziomy[data-kat] .hub { display: none; }
+  .hub { display: flex; flex-direction: column; align-items: center; gap: 3vh; }
+  .hub-tytul { font-size: 7vh; font-weight: 900; letter-spacing: .02em; }
+  .hub-kafle { display: flex; gap: 4vh; }
+  .kafel { position: relative; width: 31vh; height: 58vh; border-radius: 4vh; border: 0.7vh solid var(--kontur);
+    box-shadow: 0 1.2vh 0 rgba(75,58,46,.25); display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    padding-bottom: 2.4vh; color: #fff; font-size: 6vh; font-weight: 900; text-shadow: 0 0.5vh 0 rgba(75,58,46,.45); overflow: hidden; }
+  .kafel::before { content: ""; position: absolute; inset: 1.4vh; border-radius: 3vh; border: 0.45vh dashed rgba(255,255,255,.75); pointer-events: none; }
+  .kafel:active { transform: scale(.96); }
+  .kafel img { height: 38vh; margin-bottom: 1vh; position: relative; }
+  .kafel small { font-size: 3.4vh; font-weight: 800; position: relative; }
+  .kafel span { position: relative; }
+  /* liczenie: marchewki i działanie */
+  .licz { background: #fff; border: 0.8vh solid var(--kontur); border-radius: 4vh; padding: 2.4vh 4vh; box-shadow: 0 1.4vh 0 rgba(75,58,46,.2);
+    display: flex; flex-direction: column; align-items: center; gap: 1.2vh; }
+  .licz-marchewki { display: flex; align-items: center; gap: 2.4vh; font-size: 6.4vh; line-height: 1.1; }
+  .licz-grupa { display: grid; gap: .4vh; justify-items: center; }
+  .licz-znak { font-size: 6vh; font-weight: 900; }
+  .licz .zjedzona { opacity: .22; position: relative; }
+  .licz .zjedzona::after { content: "✖"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 5vh; color: #D9642F; opacity: 1; }
+  .licz-dzialanie { font-size: 11vh; font-weight: 900; letter-spacing: .04em; }
+  .licz-dzialanie b { color: var(--niebieski); }
   .zabawy .duzy-przycisk > .mini-pociag { flex-direction: row; gap: 1vh; }
   .mini-pociag { display: flex; gap: 1vh; position: relative; z-index: 1; }
   .mini-pociag i { width: 4.4vh; height: 4.4vh; border-radius: 1vh; border: 0.5vh solid var(--kontur); }
@@ -155,6 +181,8 @@
     position: relative; transition: transform .15s;
   }
   .tato img { position: absolute; width: 190%; left: -45%; top: -6%; }
+  .tato.ziemek img { width: 120%; left: -10%; top: 0; }
+  .opcje.cztery { gap: 2.4vw; } .opcje.cztery .opcja { width: 28vh; }
   .tato.mowi { animation: mowi .35s ease-in-out infinite alternate; }
 
   /* scena */
@@ -332,7 +360,7 @@
   <div class="start-srodek">
     <img class="start-latka" src="img/latka.svg" alt="Łatka">
     <div class="start-prawa">
-      <div class="tytul">Czytamy<br>z Łatką</div>
+      <div class="tytul">Nauka z Łatką<br>i Ziemkiem</div>
       <div class="gracze">
         <div class="gracz">
           <button class="duzy-przycisk" data-gracz="roza" style="background:var(--rozowy)">Róża</button>
@@ -353,19 +381,31 @@
     <svg viewBox="0 0 10 10"><path d="M5 1.2 L1 4.6 H2.3 V8.8 H7.7 V4.6 H9 Z" fill="#F2C230" stroke="#4B3A2E" stroke-width=".7" stroke-linejoin="round"/></svg>
   </button>
   <div class="start-srodek">
-    <img class="start-latka mala" src="img/latka.svg" alt="Łatka">
+    <div class="hub">
+      <div class="hub-tytul">Nauka z Łatką i Ziemkiem</div>
+      <div class="hub-kafle">
+        <button class="kafel" data-kat="latka" style="background:var(--niebieski)"><img src="img/latka.svg" alt=""><span>Łatka</span><small>czytanie</small></button>
+        <button class="kafel" data-kat="ziemek" style="background:var(--pomaranczowy)"><img src="img/ziemek.svg" alt=""><span>Ziemek</span><small>liczenie</small></button>
+        <button class="kafel" data-kat="tata" style="background:var(--zielony)"><img src="img/tato.svg" alt=""><span>Tata</span><small>zabawa</small></button>
+      </div>
+    </div>
+    <img class="start-latka mala" id="host-img" src="img/latka.svg" alt="">
     <div class="zabawy">
-      <button class="duzy-przycisk" data-zabawa="litery" aria-label="Litery: samogłoski" style="background:var(--niebieski)"><span>A O</span></button>
-      <button class="duzy-przycisk" data-zabawa="sylaby" aria-label="Znajdź sylabę" style="background:var(--fiolet)"><span>MA</span></button>
-      <button class="duzy-przycisk" data-zabawa="nakarm" aria-label="Nakarm Łatkę" style="background:var(--pomaranczowy)"><span>🥕</span></button>
-      <button class="duzy-przycisk" data-zabawa="pociag0" aria-label="Pociąg: dwie sylaby" style="background:var(--zielony)">
+      <button class="duzy-przycisk" data-zabawa="litery" data-kat="latka" aria-label="Litery: samogłoski" style="background:var(--niebieski)"><span>A O</span></button>
+      <button class="duzy-przycisk" data-zabawa="sylaby" data-kat="latka" aria-label="Znajdź sylabę" style="background:var(--fiolet)"><span>MA</span></button>
+      <button class="duzy-przycisk" data-zabawa="nakarm" data-kat="tata" aria-label="Nakarm Łatkę" style="background:var(--pomaranczowy)"><span>🥕</span></button>
+      <button class="duzy-przycisk" data-zabawa="pociag0" data-kat="latka" aria-label="Pociąg: dwie sylaby" style="background:var(--zielony)">
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i></span>
       </button>
-      <button class="duzy-przycisk" data-zabawa="pociag1" aria-label="Pociąg: trzy sylaby" style="background:var(--zolty)">
+      <button class="duzy-przycisk" data-zabawa="pociag1" data-kat="latka" aria-label="Pociąg: trzy sylaby" style="background:var(--zolty)">
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i><i style="background:var(--fiolet)"></i></span>
       </button>
-      <button class="duzy-przycisk" data-zabawa="obrazki" aria-label="Znajdź obrazek" style="background:var(--rozowy)"><span>🐱<small>KOT</small></span></button>
-      <button class="duzy-przycisk" data-zabawa="memory" aria-label="Memory" style="background:var(--niebieski)"><span>🃏</span></button>
+      <button class="duzy-przycisk" data-zabawa="obrazki" data-kat="latka" aria-label="Znajdź obrazek" style="background:var(--rozowy)"><span>🐱<small>KOT</small></span></button>
+      <button class="duzy-przycisk" data-zabawa="dod5" data-kat="ziemek" aria-label="Dodawanie do 5" style="background:var(--zielony)"><span>2+1</span></button>
+      <button class="duzy-przycisk" data-zabawa="dod10" data-kat="ziemek" aria-label="Dodawanie do 10" style="background:var(--niebieski)"><span>6+3</span></button>
+      <button class="duzy-przycisk" data-zabawa="ode5" data-kat="ziemek" aria-label="Odejmowanie do 5" style="background:var(--rozowy)"><span>3−1</span></button>
+      <button class="duzy-przycisk" data-zabawa="ode10" data-kat="ziemek" aria-label="Odejmowanie do 10" style="background:var(--fiolet)"><span>9−4</span></button>
+      <button class="duzy-przycisk" data-zabawa="memory" data-kat="tata" aria-label="Memory" style="background:var(--niebieski)"><span>🃏</span></button>
     </div>
   </div>
 </section>
@@ -636,7 +676,19 @@ const NAGRANIA = {
   'Super, Marcelino!': 'brawo-2-marcelina',
   'Brawo, Marcelino! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!': 'koniec-marcelina',
 };
-const nazwaPliku = t => NAGRANIA[t] || (/^[A-ZĄĆĘŁŃÓŚŹŻ]+$/.test(t) ? (t.length <= 2 ? 'syl-' : 'slowo-') + t.toLowerCase() : null);
+// Głos Ziemka (ElevenLabs MXTPAecK9xb4E4alT0Ca) w liczeniu: glos/ziemek-<nazwa>.mp3. Poza liczeniem mówi narrator (Piotr).
+let glosPostaci = '';
+const LICZBY = ['zero', 'jeden', 'dwa', 'trzy', 'cztery', 'pięć', 'sześć', 'siedem', 'osiem', 'dziewięć', 'dziesięć'];
+const ZIEMEK = Object.assign({
+  'Cześć, Różo! Jedziemy!': 'czesc', 'Cześć, Marcelino! Jedziemy!': 'czesc-marcelina',
+  'Brawo, Różo!': 'brawo-1', 'Super, Różo!': 'brawo-2', 'Świetnie!': 'brawo-3', 'Hurra! Brawo!': 'brawo-5',
+  'Brawo, Marcelino!': 'brawo-1-marcelina', 'Super, Marcelino!': 'brawo-2-marcelina',
+  'Hmm, to nie to.': 'nie-to', 'Spróbuj jeszcze raz.': 'sprobuj',
+  'Brawo, Różo! Masz nową naklejkę. Ziemek idzie spać. Jutro liczymy dalej!': 'koniec',
+  'Brawo, Marcelino! Masz nową naklejkę. Ziemek idzie spać. Jutro liczymy dalej!': 'koniec-marcelina',
+  'plus': 'plus', 'minus': 'minus', 'równa się': 'rowna-sie', 'Ile to jest': 'ile-to-jest',
+}, Object.fromEntries(LICZBY.map(l => [l, l.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l')])));
+const nazwaPliku = t => glosPostaci === 'ziemek' ? (ZIEMEK[t] ? 'ziemek-' + ZIEMEK[t] : null) : NAGRANIA[t] || (/^[A-ZĄĆĘŁŃÓŚŹŻ]+$/.test(t) ? (t.length <= 2 ? 'syl-' : 'slowo-') + t.toLowerCase() : null);
 const odtwarzacz = new Audio();
 const brakujace = new Set();
 let wypowiedz = 0;  // rośnie przy każdym przerwij(): stare wypowiedzi milkną zamiast mówić dalej
@@ -1002,7 +1054,7 @@ async function dalej() {
   nowaRunda();
 }
 
-async function koniecSesji() {
+async function koniecSesji(liczenie = false) {
   const d = pamiec.czytaj();
   d.naklejki = d.naklejki || [];
   const naklejka = NAKLEJKI[d.naklejki.length % NAKLEJKI.length];
@@ -1010,8 +1062,9 @@ async function koniecSesji() {
   d.sesje = (d.sesje || 0) + 1;
   pamiec.zapisz(d);
   document.getElementById('naklejka').textContent = naklejka;
+  const sp = document.querySelector('.spiaca'); sp.src = liczenie ? 'img/ziemek.svg' : 'img/latka.svg';
   pokaz('koniec');
-  await powiedz(`Brawo, ${GRACZE[gracz].wolacz}! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!`, { tempo: 0.9 });
+  await powiedz(liczenie ? `Brawo, ${GRACZE[gracz].wolacz}! Masz nową naklejkę. Ziemek idzie spać. Jutro liczymy dalej!` : `Brawo, ${GRACZE[gracz].wolacz}! Masz nową naklejkę. Łatka idzie spać. Jutro czytamy dalej!`, { tempo: 0.9 });
 }
 
 // ---------- zabawy z wyborem: litery, sylaby, obrazki, karmienie Łatki ----------
@@ -1043,6 +1096,38 @@ const TRYBY = {
     opcje: cel => [cel, ...losuj(WSZYSTKIE_SLOWA.filter(x => x.obrazek !== cel.obrazek), 2)],
   },
 };
+// ---- liczenie (Ziemek): dodawanie i odejmowanie z ziemniakami ----
+const SLOWNIE = ['zero', 'jeden', 'dwa', 'trzy', 'cztery', 'pięć', 'sześć', 'siedem', 'osiem', 'dziewięć', 'dziesięć'];
+const dzialania = (op, od, do_) => { // '+': suma w przedziale od..do_; '-': pierwsza liczba w przedziale od..do_
+  const t = [];
+  for (let a = 1; a <= 10; a++) for (let b = 1; b <= 10; b++) {
+    if (op === '+' && a + b >= od && a + b <= do_) t.push({ a, b, op, w: a + b });
+    if (op === '-' && a >= od && a <= do_ && b <= a) t.push({ a, b, op, w: a - b });
+  }
+  return t;
+};
+const liczenie = (id, op, od, do_, ile) => ({
+  liczenie: true, host: 'img/ziemek.svg', pula: () => dzialania(op, od, do_), ile: SLOW_W_SESJI, typ: 'tekst', prompt: 'liczenie',
+  klucz: x => `${id}:${x.a}${x.op}${x.b}`, nazwa: x => SLOWNIE[typeof x === 'number' ? x : x.w],
+  opcje: cel => [cel.w, ...losuj([...Array(do_ + 1).keys()].filter(n => n !== cel.w), ile - 1)],
+  pytanie: x => ['Ile to jest', SLOWNIE[x.a], x.op === '+' ? 'plus' : 'minus', SLOWNIE[x.b]],
+  potwierdz: x => [SLOWNIE[x.a], x.op === '+' ? 'plus' : 'minus', SLOWNIE[x.b], 'równa się', SLOWNIE[x.w]],
+  zle: () => 'Hmm, to nie to.',
+});
+TRYBY.dod5 = liczenie('d5', '+', 2, 5, 3);
+TRYBY.dod10 = liczenie('d10', '+', 6, 10, 4);
+TRYBY.ode5 = liczenie('o5', '-', 2, 5, 3);
+TRYBY.ode10 = liczenie('o10', '-', 6, 10, 4);
+function rownanie(x) {
+  const mar = (n, zjedzone = 0) => `<div class="licz-grupa" style="grid-template-columns:repeat(${Math.min(n, 5)},1fr)">${
+    Array.from({ length: n }, (_, i) => `<span class="${i >= n - zjedzone ? 'zjedzona' : ''}">🥔</span>`).join('')}</div>`;
+  const gora = x.op === '+'
+    ? `${mar(x.a)}<span class="licz-znak">+</span>${mar(x.b)}`
+    : mar(x.a, x.b);
+  return `<div class="licz"><div class="licz-marchewki">${gora}</div>
+    <div class="licz-dzialanie">${x.a} ${x.op === '+' ? '+' : '−'} ${x.b} = <b>?</b></div></div>`;
+}
+
 const zel = {
   postep: document.getElementById('z-postep'),
   gora: document.getElementById('z-gora'),
@@ -1065,6 +1150,11 @@ function startZabawy(id) {
   sesjaGry++;
   const t = TRYBY[id];
   z = { id, tryb: t, rundy: wybierzSesje(t.pula(), t.klucz, t.ile, true), nr: 0, cel: null, bledySlowa: 0, zablokowane: true };
+  glosPostaci = t.liczenie ? 'ziemek' : '';
+  document.querySelector('#zabawa .tato').classList.toggle('ziemek', !!t.liczenie);
+  document.querySelector('#zabawa .tato img').src = t.liczenie ? 'img/ziemek.svg' : 'img/tato.svg';
+  zel.latka.src = t.host || 'img/latka.svg';
+  zel.latka.alt = t.host ? 'Ziemek' : 'Łatka';
   wybierzGlos();
   przerwij();
   powitanie = powiedz(`Cześć, ${GRACZE[gracz].wolacz}! Jedziemy!`, { tempo: 0.95 });
@@ -1074,6 +1164,7 @@ function startZabawy(id) {
 
 function polecenieZ() {
   const t = z.tryb;
+  if (t.prompt === 'liczenie') return powiedz(t.pytanie(z.cel), { tempo: 0.85 });
   return t.prompt === 'sluch' ? powiedz(['Szukamy:', t.nazwa(z.cel)]) : powiedz(t.nazwa(z.cel), { tempo: 0.8 });
 }
 
@@ -1085,6 +1176,9 @@ async function nowaRundaZ() {
   if (t.prompt === 'sluch') {
     zel.prompt.innerHTML = `<button class="duzy-przycisk" id="z-glos" aria-label="Posłuchaj"><svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg></button>`;
     document.getElementById('z-glos').addEventListener('click', () => { przerwij(); polecenieZ(); });
+  } else if (t.prompt === 'liczenie') {
+    zel.prompt.innerHTML = rownanie(z.cel);
+    zel.prompt.firstChild.addEventListener('click', () => { przerwij(); polecenieZ(); });
   } else {
     zel.prompt.innerHTML = `<div class="prompt-slowo">${z.cel.syl.map((x, i) => `<span class="syl s${i % 3}">${x}</span>`).join('')}</div>`;
     zel.prompt.firstChild.addEventListener('click', () => { przerwij(); polecenieZ(); });
@@ -1092,6 +1186,7 @@ async function nowaRundaZ() {
 
   const kolory = tasuj([...KOLORY]);
   zel.opcje.innerHTML = '';
+  zel.opcje.classList.toggle('cztery', t.opcje(z.cel).length > 3);
   tasuj(t.opcje(z.cel)).forEach((o, i) => {
     const k = document.createElement('div');
     k.className = 'opcja ' + (t.typ === 'tekst' ? '' : t.typ);
@@ -1109,7 +1204,7 @@ async function nowaRundaZ() {
   if (moja !== sesjaGry) return;
   powitanie = null;
   przerwij();
-  if (t.prompt === 'sluch') await polecenieZ(); // przy obrazkach dziecko czyta samo; Tato mówi dopiero na prośbę
+  if (t.prompt !== 'slowo') await polecenieZ(); // przy obrazkach dziecko czyta samo; Tato mówi dopiero na prośbę
 }
 
 function dobraOpcja() { return [...zel.opcje.children].find(k => k.dataset.nazwa === z.tryb.nazwa(z.cel)); }
@@ -1164,11 +1259,11 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
     if (przeciagnieta) wroc(karta);
     animuj(karta, 'zla'); setTimeout(() => karta.classList.remove('zla'), 450);
     animuj(zel.latka, 'mysli');
-    await powiedz(['To jest', t.nazwa(o)], { tempo: 0.8 });
+    await powiedz(t.zle ? t.zle(o) : ['To jest', t.nazwa(o)], { tempo: 0.8 });
     if (moja !== sesjaGry) return;
     if (z.bledySlowa >= 2) {
       const d = dobraOpcja(); if (d) animuj(d, 'podpowiedz');
-      await powiedz(['Szukamy:', t.nazwa(z.cel)], { tempo: 0.8 });
+      await (t.pytanie ? polecenieZ() : powiedz(['Szukamy:', t.nazwa(z.cel)], { tempo: 0.8 }));
     } else {
       await powiedz('Spróbuj jeszcze raz.');
     }
@@ -1196,15 +1291,15 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
       spany[i].classList.remove('czytana');
     }
   }
-  await powiedz(t.nazwa(z.cel), { tempo: 0.8 });
+  await powiedz(t.potwierdz ? t.potwierdz(z.cel) : t.nazwa(z.cel), { tempo: 0.8 });
   if (moja !== sesjaGry) return;
-  const p = pochwaly();
+  const p = pochwaly().filter(x => !(t.liczenie && /czytasz/.test(x)));
   await powiedz(p[Math.floor(Math.random() * p.length)], { tempo: 0.95 });
   if (moja !== sesjaGry) return;
   await czekaj(400);
   if (moja !== sesjaGry) return;
   z.nr++;
-  if (z.nr >= z.rundy.length) return koniecSesji();
+  if (z.nr >= z.rundy.length) return koniecSesji(t.liczenie);
   nowaRundaZ();
 }
 
@@ -1218,6 +1313,7 @@ function memTresc(k, rodzaj) { // rodzaj: 'obraz' | 'slowo'
   return `<span class="mem-tekst" style="color:${KOLORY_TEKSTU[slowo.length % 4]}">${slowo}</span>`;
 }
 function startMemory() {
+  glosPostaci = '';
   sesjaGry++; clearTimeout(stoperBezczynnosci); przerwij();
   mem.moje = sesjaGry; mem.zablokowane = true;
   memEl.sekcja.classList.remove('gra');
@@ -1293,11 +1389,23 @@ document.getElementById('mem-zmien').addEventListener('click', startMemory);
 document.getElementById('mem-dom').addEventListener('click', doDomu);
 
 // ---------- przyciski ----------
+const poziomy = document.getElementById('poziomy');
+const KATEGORIE = { latka: ['img/latka.svg', 3], ziemek: ['img/ziemek.svg', 2], tata: ['img/tato.svg', 2] };
+function pokazKategorie(k) {
+  if (!k) poziomy.removeAttribute('data-kat'); else {
+    poziomy.dataset.kat = k;
+    document.getElementById('host-img').src = KATEGORIE[k][0];
+    poziomy.style.setProperty('--kol', KATEGORIE[k][1]);
+    document.querySelectorAll('.zab').forEach(w => { w.style.display = w.dataset.kat === k ? '' : 'none'; });
+  }
+  pokaz('poziomy');
+}
 document.querySelectorAll('[data-gracz]').forEach(b => b.addEventListener('click', () => {
   gracz = b.dataset.gracz;
-  pokaz('poziomy');
+  pokazKategorie(null);
 }));
-document.getElementById('do-startu').addEventListener('click', () => pokaz('start'));
+document.querySelectorAll('.kafel').forEach(b => b.addEventListener('click', () => pokazKategorie(b.dataset.kat)));
+document.getElementById('do-startu').addEventListener('click', () => poziomy.hasAttribute('data-kat') ? pokazKategorie(null) : pokaz('start'));
 function doDomu() {
   sesjaGry++; zablokowane = true; if (z) z.zablokowane = true;
   clearTimeout(stoperBezczynnosci);
@@ -1311,7 +1419,7 @@ document.getElementById('z-dom').addEventListener('click', doDomu);
 
 function startPociagu(poziom) {
   // iPad odblokowuje dźwięk dopiero po dotknięciu, więc pierwsze słowa padają tutaj
-  sesjaGry++;
+  sesjaGry++; glosPostaci = '';
   slowa = wybierzSesje(POZIOMY[poziom], x => 'p:' + x.syl.join(''));
   document.getElementById('gra').classList.toggle('trzy', slowa[0].syl.length === 3);
   wybierzGlos();
@@ -1330,6 +1438,10 @@ const OPISY = {
   pociag0: ['Pociąg: dwie sylaby', 'Tato mówi słowo (np. MA-MA), a dziecko układa wagony z sylabami na torach we właściwej kolejności. Jeden wagon jest dodatkowy i nie pasuje. Po ułożeniu pociąg wjeżdża do tunelu i wyjeżdża z obrazkiem, a dziecko czyta słowo sylaba po sylabie.'],
   pociag1: ['Pociąg: trzy sylaby', 'To samo co pociąg z dwiema sylabami, ale słowa mają trzy sylaby (np. BA-NA-NY), więc pociąg jest dłuższy. Zacznij od wersji z dwiema sylabami, a tę włącz, gdy dziecko układa je pewnie.'],
   obrazki: ['Znajdź obrazek', 'Na ekranie jest napisane słowo, a dziecko czyta je samo i dotyka właściwego obrazka z trzech. Tato nie mówi, dopóki dziecko nie dotknie napisu albo głośnika. To prawdziwe czytanie ze zrozumieniem, więc dobra zabawa na sprawdzenie postępów.'],
+  dod5: ['Dodawanie do 5', 'Ziemek pokazuje dwie grupki ziemniaków, np. 3 + 2. Dziecko liczy je i dotyka wyniku wśród trzech cyfr. Ziemniaki są cały czas widoczne, więc to konkretny, pierwszy krok do dodawania. Pod spodem jest zapis cyframi, żeby dziecko oswajało się ze znakiem „+”.'],
+  dod10: ['Dodawanie do 10', 'To samo co dodawanie do 5, ale wyniki są od 6 do 10, a odpowiedzi cztery. Włącz, gdy dziecko pewnie dodaje do 5.'],
+  ode5: ['Odejmowanie do 5', 'Ziemek pokazuje ziemniaki, a część z nich jest zjedzona (blada, przekreślona). Dziecko liczy, ile zostało, i dotyka wyniku. Ważne: odejmowanie to „ubywa”, więc zjedzone ziemniaki widać cały czas.'],
+  ode10: ['Odejmowanie do 10', 'To samo co odejmowanie do 5, ale zaczynamy od 6–10 ziemniaków i są cztery odpowiedzi. Włącz po odejmowaniu do 5.'],
   memory: ['Memory', 'Dwie wersje do wyboru na górze: „obrazek = tekst” (pary to obrazek i jego słowo, więc dziecko czyta) oraz „obrazek = obrazek” (dwa takie same obrazki, klasyczne memory bez czytania, łatwiejsze na rozgrzewkę). Dziecko odkrywa dwie karty, Tato mówi słowo na głos, a pasujące zostają na zielono. Plansze: 5×5, 6×6, 7×7, 8×8 i 10×10. Przy nieparzystym rozmiarze pośrodku leży Łatka. Przy 10×10 jest 50 par, a obrazków 40, więc część par się powtarza (pasują do siebie dowolne dwie karty z tym samym słowem). Zacznij od 5×5. Ta zabawa nie ma podpowiedzi.'],
 };
 function pokazOpis(id) {
@@ -1340,7 +1452,7 @@ function pokazOpis(id) {
 }
 document.querySelectorAll('[data-zabawa]').forEach(b => {
   const w = document.createElement('div'); w.className = 'zab';
-  b.replaceWith(w); w.appendChild(b);
+  w.dataset.kat = b.dataset.kat; b.replaceWith(w); w.appendChild(b);
   const i = document.createElement('button');
   i.className = 'info-przycisk'; i.textContent = 'i'; i.setAttribute('aria-label', 'Opis zabawy dla rodzica');
   i.addEventListener('click', e => { e.stopPropagation(); pokazOpis(b.dataset.zabawa); });
