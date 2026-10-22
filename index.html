@@ -321,6 +321,10 @@
   .opcja.skrzynka { width: 40vh; height: 30vh; border-radius: 1.6vh; text-shadow: none; font-size: 5.2vh; line-height: 1;
     background: repeating-linear-gradient(180deg, #C58B4B 0 5vh, #9C6A32 5vh 5.8vh); }
   .opcja.skrzynka .sk-w { display: grid; gap: .4vh; justify-items: center; align-content: center; width: 100%; height: 100%; padding: 1vh 2vh; box-sizing: border-box; pointer-events: none; }
+  .opcje.szesc { gap: 2vw; } .opcje.szesc .opcja { width: 18vh; height: 16vh; font-size: 7.5vh; }
+  .skrzynia.sort { width: 32vh; height: 22vh; margin-bottom: 0; display: grid; place-items: center; font-size: 11vh; font-weight: 900; color: #fff; text-shadow: 0 .5vh 0 rgba(75,58,46,.55); touch-action: none; }
+  .skrzynia.sort.pelna { filter: brightness(1.12); }
+  .skrzynia.sort.zla { animation: trzesie .4s ease-in-out; }
   .prompt-luka { display: flex; align-items: center; gap: 4vh; }
   .prompt-luka .obr, .prompt-obraz { width: 22vh; height: 22vh; flex: none; position: relative; overflow: hidden; background: #fff; border: .7vh solid var(--kontur); border-radius: 3vh; display: grid; place-items: center; font-size: 11vh; }
   .prompt-obraz { width: 32vh; height: 32vh; font-size: 16vh; }
@@ -429,6 +433,7 @@
       <button class="duzy-przycisk" data-zabawa="dod10" data-kat="ziemek" aria-label="Dodawanie do 10" style="background:var(--niebieski)"><span>6+3</span></button>
       <button class="duzy-przycisk" data-zabawa="ode5" data-kat="ziemek" aria-label="Odejmowanie do 5" style="background:var(--rozowy)"><span>3−1</span></button>
       <button class="duzy-przycisk" data-zabawa="ode10" data-kat="ziemek" aria-label="Odejmowanie do 10" style="background:var(--fiolet)"><span>9−4</span></button>
+      <button class="duzy-przycisk" data-zabawa="sortuj" data-kat="tata" aria-label="Sortuj do skrzyń" style="background:var(--zielony)"><span>🥔<small>MA|BA</small></span></button>
       <button class="duzy-przycisk" data-zabawa="memory" data-kat="tata" aria-label="Memory" style="background:var(--niebieski)"><span>🃏</span></button>
     </div>
   </div>
@@ -1192,8 +1197,88 @@ zel.latka.addEventListener('animationend', e => {
 });
 zel.latka.addEventListener('pointerdown', () => { animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka, z && z.tryb && z.tryb.liczenie); });
 
+function startSortuj() {
+  sesjaGry++;
+  const moja = sesjaGry;
+  clearTimeout(stoperBezczynnosci);
+  z = { id: 'sortuj', tryb: { typ: 'ziemniak' }, zablokowane: true };
+  glosPostaci = '';
+  document.querySelector('#zabawa .tato').classList.remove('ziemek');
+  document.querySelector('#zabawa .tato img').src = 'img/tato.svg';
+  zel.latka.src = 'img/latka.svg'; zel.latka.alt = 'Łatka';
+  zel.skrzynia.hidden = true;
+  zel.prompt.innerHTML = '';
+  wybierzGlos(); przerwij();
+  pokaz('zabawa');
+  const RUND = 3;
+  let nr = 0;
+  const nowa = async () => {
+    zel.gora.querySelectorAll('.sort').forEach(x => x.remove());
+    zel.postep.innerHTML = Array.from({ length: RUND }, (_, i) => `<span class="${i < nr ? 'zrobione' : i === nr ? 'teraz' : ''}"></span>`).join('');
+    const a = WSZYSTKIE_SYLABY[Math.floor(Math.random() * WSZYSTKIE_SYLABY.length)];
+    const b = podobneSylaby(a)[0];
+    const kr = [a, b];
+    const skrzynie = tasuj([0, 1]).map(i => {
+      const sk = document.createElement('div');
+      sk.className = 'skrzynia sort'; sk.textContent = kr[i]; sk.dataset.syl = kr[i];
+      sk.innerHTML += '<div class="w"></div>';
+      sk.addEventListener('click', () => { przerwij(); powiedz(sk.dataset.syl, { tempo: 0.75 }); });
+      return sk;
+    });
+    zel.gora.insertBefore(skrzynie[0], zel.latka);
+    zel.gora.insertBefore(skrzynie[1], zel.prompt);
+    zel.opcje.innerHTML = ''; zel.opcje.className = 'opcje szesc';
+    let zostalo = 6;
+    tasuj([a, a, a, b, b, b]).forEach(syl => {
+      const k = document.createElement('div');
+      k.className = 'opcja ziemniak'; k.textContent = syl; k.dataset.nazwa = syl;
+      zel.opcje.appendChild(k);
+      let sx, sy, ruszyl = false, aktywny = false, zajety = false;
+      k.addEventListener('pointerdown', e => { if (zajety) return; aktywny = true; ruszyl = false; sx = e.clientX; sy = e.clientY; k.setPointerCapture(e.pointerId); });
+      k.addEventListener('pointermove', e => {
+        if (!aktywny) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (!ruszyl && Math.hypot(dx, dy) > 10) { ruszyl = true; k.classList.add('ciagniety'); }
+        if (ruszyl) k.style.transform = `translate(${dx}px, ${dy}px) scale(1.08)`;
+      });
+      k.addEventListener('pointercancel', () => { aktywny = false; k.classList.remove('ciagniety'); wroc(k); });
+      k.addEventListener('pointerup', async e => {
+        if (!aktywny) return;
+        aktywny = false; k.classList.remove('ciagniety');
+        if (!ruszyl) { k.style.transform = ''; przerwij(); powiedz(syl, { tempo: 0.75 }); return; }
+        const zap = window.innerHeight * .05;
+        const cel = skrzynie.find(sk => { const r = sk.getBoundingClientRect(); return e.clientX > r.left - zap && e.clientX < r.right + zap && e.clientY > r.top - zap && e.clientY < r.bottom + zap; });
+        if (!cel) { wroc(k); return; }
+        if (cel.dataset.syl !== syl) {
+          wroc(k); animuj(cel, 'zla'); setTimeout(() => cel.classList.remove('zla'), 450);
+          przerwij(); powiedz('Spróbuj jeszcze raz.', { tempo: 0.95 });
+          return;
+        }
+        zajety = true;
+        const kb = k.getBoundingClientRect(), sb = cel.getBoundingClientRect();
+        k.style.zIndex = 50; k.style.transition = 'transform .4s ease-in, opacity .4s';
+        k.style.transform = `translate(${sb.left + sb.width / 2 - kb.left - kb.width / 2}px, ${sb.top + sb.height * .2 - kb.top - kb.height / 2}px) scale(.3)`;
+        k.style.opacity = '0';
+        przerwij(); powiedz(syl, { tempo: 0.75 });
+        setTimeout(() => { if (sesjaGry === moja) cel.querySelector('.w').append(Object.assign(document.createElement('span'), { textContent: '🥔' })); }, 380);
+        zostalo--;
+        if (zostalo > 0) return;
+        await czekaj(900); if (moja !== sesjaGry) return;
+        await powiedz('Świetnie!', { tempo: 0.95 }); if (moja !== sesjaGry) return;
+        nr++;
+        if (nr >= RUND) return koniecSesji(false);
+        nowa();
+      });
+    });
+  };
+  powitanie = powiedz(`Cześć, ${GRACZE[gracz].wolacz}! Jedziemy!`, { tempo: 0.95 });
+  nowa();
+}
+
 function startZabawy(id) {
   sesjaGry++;
+  zel.gora.querySelectorAll('.sort').forEach(x => x.remove());
+  zel.opcje.classList.remove('szesc');
   const t = TRYBY[id];
   z = { id, tryb: t, rundy: wybierzSesje(t.pula(), t.klucz, t.ile, true), nr: 0, cel: null, bledySlowa: 0, zablokowane: true };
   glosPostaci = t.liczenie ? 'ziemek' : '';
@@ -1464,7 +1549,7 @@ document.getElementById('mem-dom').addEventListener('click', doDomu);
 
 // ---------- przyciski ----------
 const poziomy = document.getElementById('poziomy');
-const KATEGORIE = { latka: ['img/latka.svg', 4], ziemek: ['img/ziemek.svg', 3], tata: ['img/tato.svg', 2] };
+const KATEGORIE = { latka: ['img/latka.svg', 4], ziemek: ['img/ziemek.svg', 3], tata: ['img/tato.svg', 3] };
 function pokazKategorie(k) {
   if (!k) poziomy.removeAttribute('data-kat'); else {
     poziomy.dataset.kat = k;
@@ -1512,6 +1597,7 @@ const OPISY = {
   pociag0: ['Pociąg: dwie sylaby', 'Tato mówi słowo (np. MA-MA), a dziecko układa wagony z sylabami na torach we właściwej kolejności. Jeden wagon jest dodatkowy i nie pasuje. Po ułożeniu pociąg wjeżdża do tunelu i wyjeżdża z obrazkiem, a dziecko czyta słowo sylaba po sylabie.'],
   pociag1: ['Pociąg: trzy sylaby', 'To samo co pociąg z dwiema sylabami, ale słowa mają trzy sylaby (np. BA-NA-NY), więc pociąg jest dłuższy. Zacznij od wersji z dwiema sylabami, a tę włącz, gdy dziecko układa je pewnie.'],
   obrazki: ['Znajdź obrazek', 'Na ekranie jest napisane słowo, a dziecko czyta je samo i dotyka właściwego obrazka z trzech. Tato nie mówi, dopóki dziecko nie dotknie napisu albo głośnika. To prawdziwe czytanie ze zrozumieniem, więc dobra zabawa na sprawdzenie postępów.'],
+  sortuj: ['Sortuj do skrzyń', 'Po bokach stoją dwie skrzynie z sylabami (np. MA i BA), a na dole leżą ziemniaki z tymi sylabami. Dziecko przeciąga każdy ziemniak do skrzyni z taką samą sylabą. Dotknięcie ziemniaka albo skrzyni czyta sylabę na głos. Zły ziemniak po prostu wraca na miejsce. Sesja to 3 rundy po 6 ziemniaków. To ruch i dopasowanie, więc dobrze działa, gdy dziecko się wierci, a przy okazji ćwiczy rozróżnianie podobnych sylab.'],
   brak: ['Brakująca sylaba', 'Na ekranie jest słowo z dziurą, np. MA-_A, i jego obrazek. Tato mówi całe słowo, a dziecko dotyka brakującej sylaby wśród trzech kart. Po dobrej odpowiedzi sylaba wskakuje na miejsce i dziecko czyta słowo sylaba po sylabie. To krok od rozpoznawania sylab do czytania słów.'],
   pierwsza: ['Pierwsza sylaba obrazka', 'Na ekranie jest obrazek (np. kot), a Tato mówi słowo. Dziecko dotyka sylaby, od której słowo się zaczyna (KO). Po dobrej odpowiedzi pod obrazkiem pojawia się całe słowo. Łączy obraz, dźwięk i zapis.'],
   wiecej: ['Gdzie więcej?', 'Ziemek pokazuje dwie skrzynie z ziemniakami, a dziecko dotyka tej, w której jest ich więcej. Liczby są od 1 do 10, zawsze różne. Ziemek nie zadaje pytania głosem (jest napisane na ekranie), mówi tylko wynik. To przygotowanie do dodawania: dziecko porównuje ilości, zanim zacznie rachować.'],
@@ -1540,7 +1626,7 @@ document.getElementById('info-tlo').addEventListener('click', e => { if (e.targe
 
 document.querySelectorAll('[data-zabawa]').forEach(b => b.addEventListener('click', () => {
   const co = b.dataset.zabawa;
-  if (co.startsWith('pociag')) startPociagu(+co.slice(-1)); else if (co === 'memory') startMemory(); else startZabawy(co);
+  if (co.startsWith('pociag')) startPociagu(+co.slice(-1)); else if (co === 'memory') startMemory(); else if (co === 'sortuj') startSortuj(); else startZabawy(co);
 }));
 document.getElementById('powtorz').addEventListener('click', () => { przerwij(); if (!zablokowane) polecenie(); });
 el.dalej.addEventListener('click', dalej);
