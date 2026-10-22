@@ -317,7 +317,18 @@
   .opcja.obraz::before { border-color: #D9C9B4; }
   .opcja.ziemniak { background-color: #C99A5B; border-radius: 58% 42% 55% 45% / 50% 58% 42% 50%; border-color: #7A5530;
     background-image: radial-gradient(circle at 22% 30%, #8B6236 0 1.1vh, transparent 1.2vh), radial-gradient(circle at 78% 24%, #8B6236 0 .8vh, transparent .9vh), radial-gradient(circle at 70% 76%, #8B6236 0 1vh, transparent 1.1vh), radial-gradient(circle at 28% 80%, #8B6236 0 .7vh, transparent .8vh); }
-  .opcja.ziemniak::before { display: none; }
+  .opcja.ziemniak::before, .opcja.skrzynka::before { display: none; }
+  .opcja.skrzynka { width: 40vh; height: 30vh; border-radius: 1.6vh; text-shadow: none; font-size: 5.2vh; line-height: 1;
+    background: repeating-linear-gradient(180deg, #C58B4B 0 5vh, #9C6A32 5vh 5.8vh); }
+  .opcja.skrzynka .sk-w { display: grid; gap: .4vh; justify-items: center; align-content: center; width: 100%; height: 100%; padding: 1vh 2vh; box-sizing: border-box; pointer-events: none; }
+  .prompt-luka { display: flex; align-items: center; gap: 4vh; }
+  .prompt-luka .obr, .prompt-obraz { width: 22vh; height: 22vh; flex: none; position: relative; overflow: hidden; background: #fff; border: .7vh solid var(--kontur); border-radius: 3vh; display: grid; place-items: center; font-size: 11vh; }
+  .prompt-obraz { width: 32vh; height: 32vh; font-size: 16vh; }
+  .prompt-luka .obr img, .prompt-obraz img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .syl.luka { display: inline-block; min-width: 1.5em; border-bottom: .8vh dashed var(--kontur); color: transparent; }
+  .syl.luka.wpisana { color: var(--pomaranczowy); border-bottom-color: transparent; }
+  .prompt-pytanie { font-size: 9vh; font-weight: 900; line-height: 1.05; text-align: center; color: var(--kontur); background: #fff; border: .8vh solid var(--kontur); border-radius: 3vh; padding: 2vh 4vh; }
+  .podpis-pierwsza { margin-top: 1.5vh; text-align: center; font-size: 9vh; font-weight: 900; color: var(--kontur); min-height: 10vh; }
   .opcja.ziemniak:nth-child(2) { border-radius: 44% 56% 40% 60% / 58% 42% 58% 42%; }
   .opcja.ziemniak:nth-child(3) { border-radius: 52% 48% 62% 38% / 44% 56% 44% 56%; }
   .opcja.ziemniak:nth-child(4) { border-radius: 40% 60% 48% 52% / 55% 45% 60% 40%; }
@@ -411,6 +422,9 @@
         <span class="mini-pociag"><i style="background:var(--pomaranczowy)"></i><i style="background:var(--niebieski)"></i><i style="background:var(--fiolet)"></i></span>
       </button>
       <button class="duzy-przycisk" data-zabawa="obrazki" data-kat="latka" aria-label="Znajdź obrazek" style="background:var(--rozowy)"><span>🐱<small>KOT</small></span></button>
+      <button class="duzy-przycisk" data-zabawa="brak" data-kat="latka" aria-label="Brakująca sylaba" style="background:var(--zielony)"><span>MA<small>_</small></span></button>
+      <button class="duzy-przycisk" data-zabawa="pierwsza" data-kat="latka" aria-label="Pierwsza sylaba obrazka" style="background:var(--niebieski)"><span>🐱<small>K_</small></span></button>
+      <button class="duzy-przycisk" data-zabawa="wiecej" data-kat="ziemek" aria-label="Gdzie więcej" style="background:var(--zolty)"><span>🥔<small>&gt;</small></span></button>
       <button class="duzy-przycisk" data-zabawa="dod5" data-kat="ziemek" aria-label="Dodawanie do 5" style="background:var(--zielony)"><span>2+1</span></button>
       <button class="duzy-przycisk" data-zabawa="dod10" data-kat="ziemek" aria-label="Dodawanie do 10" style="background:var(--niebieski)"><span>6+3</span></button>
       <button class="duzy-przycisk" data-zabawa="ode5" data-kat="ziemek" aria-label="Odejmowanie do 5" style="background:var(--rozowy)"><span>3−1</span></button>
@@ -1101,6 +1115,18 @@ const TRYBY = {
     pula: () => WSZYSTKIE_SYLABY, ile: SLOW_W_SESJI, typ: 'ziemniak', prompt: 'sluch',
     klucz: x => 'n:' + x, nazwa: x => x, opcje: cel => [cel, ...podobneSylaby(cel)],
   },
+  brak: { // brakująca sylaba w słowie
+    pula: () => WSZYSTKIE_SLOWA.map(w => ({ ...w, brak: Math.floor(Math.random() * w.syl.length) })), ile: SLOW_W_SESJI, typ: 'tekst', prompt: 'luka',
+    klucz: x => 'b:' + x.syl.join('') + x.brak, nazwa: x => typeof x === 'string' ? x : x.syl[x.brak],
+    opcje: cel => [cel.syl[cel.brak], ...podobneSylaby(cel.syl[cel.brak])],
+    potwierdz: x => x.syl.join(''),
+  },
+  pierwsza: { // od jakiej sylaby zaczyna się słowo z obrazka
+    pula: () => WSZYSTKIE_SLOWA.filter(w => OBRAZKI_JEST.has(bezOgonkow(w.syl.join('')))), ile: SLOW_W_SESJI, typ: 'tekst', prompt: 'pierwsza',
+    klucz: x => 'p:' + x.syl.join(''), nazwa: x => typeof x === 'string' ? x : x.syl[0],
+    opcje: cel => [cel.syl[0], ...podobneSylaby(cel.syl[0])],
+    potwierdz: x => [x.syl[0], x.syl.join('')],
+  },
   obrazki: {
     pula: () => WSZYSTKIE_SLOWA, ile: SLOW_W_SESJI, typ: 'obraz', prompt: 'slowo',
     klucz: x => 'o:' + x.syl.join(''), nazwa: x => x.syl.join(''),
@@ -1125,6 +1151,14 @@ const liczenie = (id, op, od, do_, ile) => ({
   potwierdz: x => [SLOWNIE[x.a], x.op === '+' ? 'plus' : 'minus', SLOWNIE[x.b], 'równa się', SLOWNIE[x.w]],
   zle: () => 'Hmm, to nie to.',
 });
+TRYBY.wiecej = { // gdzie jest więcej ziemniaków: dwie skrzynie, dotknij większej
+  liczenie: true, host: 'img/ziemek.svg', ile: SLOW_W_SESJI, typ: 'skrzynka', prompt: 'wiecej',
+  pula: () => { const t = []; for (let a = 1; a <= 10; a++) for (let b = 1; b <= 10; b++) if (a !== b) t.push({ a, b }); return t; },
+  klucz: x => `w:${x.a}-${x.b}`, nazwa: x => SLOWNIE[typeof x === 'number' ? x : Math.max(x.a, x.b)],
+  opcje: cel => [cel.a, cel.b],
+  potwierdz: x => SLOWNIE[Math.max(x.a, x.b)],
+  zle: () => 'Hmm, to nie to.',
+};
 TRYBY.dod5 = liczenie('d5', '+', 2, 5, 3);
 TRYBY.dod10 = liczenie('d10', '+', 6, 10, 4);
 TRYBY.ode5 = liczenie('o5', '-', 2, 5, 3);
@@ -1179,6 +1213,8 @@ function startZabawy(id) {
 function polecenieZ() {
   const t = z.tryb;
   if (t.prompt === 'liczenie') return powiedz(t.pytanie(z.cel), { tempo: 0.85 });
+  if (t.prompt === 'wiecej') return Promise.resolve(); // pytanie jest na ekranie; Ziemek mówi dopiero wynik
+  if (t.prompt === 'luka' || t.prompt === 'pierwsza') return powiedz(z.cel.syl.join(''), { tempo: 0.8 });
   return t.prompt === 'sluch' ? powiedz(['Szukamy:', t.nazwa(z.cel)]) : powiedz(t.nazwa(z.cel), { tempo: 0.8 });
 }
 
@@ -1190,6 +1226,14 @@ async function nowaRundaZ() {
   if (t.prompt === 'sluch') {
     zel.prompt.innerHTML = `<button class="duzy-przycisk" id="z-glos" aria-label="Posłuchaj"><svg viewBox="0 0 24 24" fill="none" stroke="#4B3A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg></button>`;
     document.getElementById('z-glos').addEventListener('click', () => { przerwij(); polecenieZ(); });
+  } else if (t.prompt === 'luka') {
+    zel.prompt.innerHTML = `<div class="prompt-luka"><div class="obr">${obrazekHtml(z.cel)}</div><div class="prompt-slowo">${z.cel.syl.map((x, i) => `<span class="syl s${i % 3}${i === z.cel.brak ? ' luka' : ''}">${x}</span>`).join('')}</div></div>`;
+    zel.prompt.firstChild.addEventListener('click', () => { przerwij(); polecenieZ(); });
+  } else if (t.prompt === 'pierwsza') {
+    zel.prompt.innerHTML = `<div class="prompt-obraz">${obrazekHtml(z.cel)}</div><div class="podpis-pierwsza"></div>`;
+    zel.prompt.firstChild.addEventListener('click', () => { przerwij(); polecenieZ(); });
+  } else if (t.prompt === 'wiecej') {
+    zel.prompt.innerHTML = `<div class="prompt-pytanie">Gdzie jest<br>więcej?</div>`;
   } else if (t.prompt === 'liczenie') {
     zel.prompt.innerHTML = rownanie(z.cel);
     zel.prompt.firstChild.addEventListener('click', () => { przerwij(); polecenieZ(); });
@@ -1205,6 +1249,7 @@ async function nowaRundaZ() {
     const k = document.createElement('div');
     k.className = 'opcja ' + (t.typ === 'tekst' ? '' : t.typ);
     if (t.typ === 'obraz') k.innerHTML = obrazekHtml(o);
+    else if (t.typ === 'skrzynka') k.innerHTML = `<div class="sk-w" style="grid-template-columns:repeat(${Math.min(o, 5)},1fr)">${'<span>🥔</span>'.repeat(o)}</div>`;
     else { k.textContent = o; if (t.typ === 'tekst') k.style.background = kolory[i]; }
     k.dataset.nazwa = t.nazwa(o);
     zel.opcje.appendChild(k);
@@ -1309,7 +1354,9 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
     animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka, t.liczenie);
   }
 
-  if (t.prompt === 'slowo') { // czytamy słowo sylaba po sylabie, potem całe
+  if (t.prompt === 'pierwsza') zel.prompt.querySelector('.podpis-pierwsza').innerHTML = z.cel.syl.map((x, i) => `<span style="color:var(--${['pomaranczowy', 'niebieski', 'fiolet'][i % 3]})">${x}</span>`).join('');
+  if (t.prompt === 'luka') { const l = zel.prompt.querySelector('.syl.luka'); l.classList.add('wpisana'); }
+  if (t.prompt === 'slowo' || t.prompt === 'luka') { // czytamy słowo sylaba po sylabie, potem całe
     const spany = zel.prompt.querySelectorAll('.syl');
     for (let i = 0; i < spany.length; i++) {
       spany[i].classList.add('czytana');
@@ -1417,7 +1464,7 @@ document.getElementById('mem-dom').addEventListener('click', doDomu);
 
 // ---------- przyciski ----------
 const poziomy = document.getElementById('poziomy');
-const KATEGORIE = { latka: ['img/latka.svg', 3], ziemek: ['img/ziemek.svg', 2], tata: ['img/tato.svg', 2] };
+const KATEGORIE = { latka: ['img/latka.svg', 4], ziemek: ['img/ziemek.svg', 3], tata: ['img/tato.svg', 2] };
 function pokazKategorie(k) {
   if (!k) poziomy.removeAttribute('data-kat'); else {
     poziomy.dataset.kat = k;
@@ -1465,6 +1512,9 @@ const OPISY = {
   pociag0: ['Pociąg: dwie sylaby', 'Tato mówi słowo (np. MA-MA), a dziecko układa wagony z sylabami na torach we właściwej kolejności. Jeden wagon jest dodatkowy i nie pasuje. Po ułożeniu pociąg wjeżdża do tunelu i wyjeżdża z obrazkiem, a dziecko czyta słowo sylaba po sylabie.'],
   pociag1: ['Pociąg: trzy sylaby', 'To samo co pociąg z dwiema sylabami, ale słowa mają trzy sylaby (np. BA-NA-NY), więc pociąg jest dłuższy. Zacznij od wersji z dwiema sylabami, a tę włącz, gdy dziecko układa je pewnie.'],
   obrazki: ['Znajdź obrazek', 'Na ekranie jest napisane słowo, a dziecko czyta je samo i dotyka właściwego obrazka z trzech. Tato nie mówi, dopóki dziecko nie dotknie napisu albo głośnika. To prawdziwe czytanie ze zrozumieniem, więc dobra zabawa na sprawdzenie postępów.'],
+  brak: ['Brakująca sylaba', 'Na ekranie jest słowo z dziurą, np. MA-_A, i jego obrazek. Tato mówi całe słowo, a dziecko dotyka brakującej sylaby wśród trzech kart. Po dobrej odpowiedzi sylaba wskakuje na miejsce i dziecko czyta słowo sylaba po sylabie. To krok od rozpoznawania sylab do czytania słów.'],
+  pierwsza: ['Pierwsza sylaba obrazka', 'Na ekranie jest obrazek (np. kot), a Tato mówi słowo. Dziecko dotyka sylaby, od której słowo się zaczyna (KO). Po dobrej odpowiedzi pod obrazkiem pojawia się całe słowo. Łączy obraz, dźwięk i zapis.'],
+  wiecej: ['Gdzie więcej?', 'Ziemek pokazuje dwie skrzynie z ziemniakami, a dziecko dotyka tej, w której jest ich więcej. Liczby są od 1 do 10, zawsze różne. Ziemek nie zadaje pytania głosem (jest napisane na ekranie), mówi tylko wynik. To przygotowanie do dodawania: dziecko porównuje ilości, zanim zacznie rachować.'],
   dod5: ['Dodawanie do 5', 'Ziemek pokazuje dwie grupki ziemniaków, np. 3 + 2. Dziecko liczy je i dotyka wyniku wśród trzech cyfr. Ziemniaki są cały czas widoczne, więc to konkretny, pierwszy krok do dodawania. Pod spodem jest zapis cyframi, żeby dziecko oswajało się ze znakiem „+”.'],
   dod10: ['Dodawanie do 10', 'To samo co dodawanie do 5, ale wyniki są od 6 do 10, a odpowiedzi cztery. Włącz, gdy dziecko pewnie dodaje do 5.'],
   ode5: ['Odejmowanie do 5', 'Ziemek pokazuje ziemniaki, a część z nich jest zjedzona (blada, przekreślona). Dziecko liczy, ile zostało, i dotyka wyniku. Ważne: odejmowanie to „ubywa”, więc zjedzone ziemniaki widać cały czas.'],
