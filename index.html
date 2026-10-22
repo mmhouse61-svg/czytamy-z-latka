@@ -211,6 +211,7 @@
   .pasazer { position: absolute; left: 50%; bottom: calc(100% - 1vh); height: calc(17vh * var(--k)); transform: translateX(-50%);
     transform-origin: 50% 100%; animation: jazda .3s ease-in-out infinite alternate; pointer-events: none; }
   .marchewka { position: absolute; font-size: 7vh; pointer-events: none; z-index: 30; animation: marchewka 1.3s ease-out forwards; }
+  .marchewka.balonik { animation-name: balonik; animation-duration: 2s; }
   .karta-prawa { position: relative; }
 
   .pociag {
@@ -341,6 +342,7 @@
   @keyframes macha { 0%,100% { transform: rotate(0); } 50% { transform: rotate(12deg); } }
   @keyframes wbiega { from { transform: translateX(-25vw); } to { transform: none; } }
   @keyframes jazda { from { transform: translateX(-50%) rotate(-4deg); } to { transform: translateX(-50%) rotate(4deg) translateY(-0.6vh); } }
+  @keyframes balonik { 0% { transform: translateY(0) scale(.4); opacity: 0; } 15% { transform: translateY(-3vh) scale(1.1); opacity: 1; } 100% { transform: translateY(-40vh) translateX(3vh); opacity: 0; } }
   @keyframes marchewka { 0% { transform: translateY(0) scale(.4); opacity: 0; } 20% { transform: translateY(-4vh) scale(1.15); opacity: 1; } 100% { transform: translateY(-18vh) rotate(30deg); opacity: 0; } }
   @keyframes kolysanie { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
   @keyframes skok { 0%,100% { transform: translateY(0) scale(1,1); } 15% { transform: translateY(0) scale(1.08,.9); } 50% { transform: translateY(-9vh) scale(.95,1.06) rotate(-4deg); } 85% { transform: translateY(0) scale(1.06,.94); } }
@@ -867,12 +869,12 @@ function animuj(elm, klasa) { elm.classList.remove(klasa); elm.offsetWidth; elm.
 el.latka.addEventListener('animationend', e => {
   if (e.animationName !== 'kolysanie') el.latka.classList.remove('hop', 'mysli', 'macha', 'wraca', 'skacze');
 });
-function marchewka(rodzic, x, y) {
+function marchewka(rodzic, x, y, balonik) {
   const m = document.createElement('span');
-  m.className = 'marchewka'; m.textContent = '🥕';
+  m.className = 'marchewka' + (balonik ? ' balonik' : ''); m.textContent = balonik ? '🎈' : '🥕';
   m.style.left = x; m.style.top = y;
   rodzic.appendChild(m);
-  setTimeout(() => m.remove(), 1400);
+  setTimeout(() => m.remove(), balonik ? 2100 : 1400);
 }
 // dotknięcie Łatki: podskok i marchewka
 el.latka.addEventListener('pointerdown', () => {
@@ -1137,14 +1139,14 @@ const zel = {
 };
 let z = null; // stan bieżącej zabawy: { tryb, rundy, nr, cel, bledySlowa, zablokowane }
 
-function marchewkaNad(obraz) {
+function marchewkaNad(obraz, balonik) {
   const r = obraz.getBoundingClientRect(), sr = obraz.parentElement.getBoundingClientRect();
-  marchewka(obraz.parentElement, (r.left - sr.left + r.width * .3) + 'px', (r.top - sr.top) + 'px');
+  marchewka(obraz.parentElement, (r.left - sr.left + r.width * .3) + 'px', (r.top - sr.top) + 'px', balonik);
 }
 zel.latka.addEventListener('animationend', e => {
   if (e.animationName !== 'kolysanie') zel.latka.classList.remove('hop', 'mysli', 'skacze');
 });
-zel.latka.addEventListener('pointerdown', () => { animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka); });
+zel.latka.addEventListener('pointerdown', () => { animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka, z && z.tryb && z.tryb.liczenie); });
 
 function startZabawy(id) {
   sesjaGry++;
@@ -1280,7 +1282,7 @@ async function sprawdzZ(o, karta, przeciagnieta = false) {
     karta.style.transform = `translate(${lr.left + lr.width / 2 - kr.left - kr.width / 2}px, ${lr.top + lr.height / 2 - kr.top - kr.height / 2}px) scale(.2)`;
     karta.style.opacity = '0';
   }
-  animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka);
+  animuj(zel.latka, 'skacze'); marchewkaNad(zel.latka, t.liczenie);
 
   if (t.prompt === 'slowo') { // czytamy słowo sylaba po sylabie, potem całe
     const spany = zel.prompt.querySelectorAll('.syl');
